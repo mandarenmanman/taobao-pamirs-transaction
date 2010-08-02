@@ -23,7 +23,9 @@ import com.taobao.pamirs.transaction.TBTransactionTypeAnnotation;
 public class TestBean implements ITestBean,TBTransactionHint {
 
 	int threadNum =5;
-	
+	public TestBean(){
+		
+	}
 	public String getMyName(){
 
 		return "TestBean";

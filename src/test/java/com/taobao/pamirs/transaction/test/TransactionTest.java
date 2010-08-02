@@ -66,10 +66,10 @@ public class TransactionTest extends UnitilsJUnit4 implements Runnable{
 	int threadNum =0;
 	
 	@SpringBeanByName
-    TransactionManager serviceManager;
+    TransactionManager transactionManager;
 	
-	public void setServiceManager(TransactionManager serviceManager) {
-		this.serviceManager = serviceManager;
+	public void setTransactionManager(TransactionManager transactionManager) {
+		this.transactionManager = transactionManager;
 	}
 	@org.junit.Test
 	public void test() throws Exception{
@@ -117,7 +117,7 @@ public class TransactionTest extends UnitilsJUnit4 implements Runnable{
 	public void executeAppframe(String s )throws Exception{
 		Connection conn = null;
 		try{
-			 conn = TransactionManager.getConnection("appframe");
+			 conn = TransactionManager.getConnection("jz");
 			 Statement statement = conn.createStatement();
 			 statement.execute("update test set name = '" + s + "' ,MODIFY_DATE = sysdate,num = num + 1 where id =" + this.threadNum);
 			 statement.close();
