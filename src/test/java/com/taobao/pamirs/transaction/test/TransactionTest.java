@@ -33,10 +33,10 @@ public class TransactionTest extends UnitilsJUnit4 implements Runnable{
 		BasicDataSource dsAppframe = new BasicDataSource();
 		dsAppframe.setDriverClassName("oracle.jdbc.driver.OracleDriver");
 		dsAppframe.setUrl("jdbc:oracle:thin:@localhost:1521:oracle9i");
-		dsAppframe.setUsername("appframe");
-		dsAppframe.setPassword("appframe");
+		dsAppframe.setUsername("jz");
+		dsAppframe.setPassword("jz");
 		
-		dsList.put("appframe", new TBDataSourceImpl("appframe",dsAppframe));
+		dsList.put("jz", new TBDataSourceImpl("jz",dsAppframe));
 		
 		new TransactionManager().setDataSourceMap(dsList);
 		
