@@ -27,14 +27,7 @@ public class SpringTest extends UnitilsJUnit4{
 	}
 	@org.junit.Test
 	public void test() throws Exception{
-		TransactionManager.getTransactionManager().begin();
-		TBTransactionImpl.debug();
-		this.testBean.executeHj("ssssss");
-		TBTransactionImpl.debug();
-		this.testBean.executeAppframe("ssssss");
-		TBTransactionImpl.debug();
-		TransactionManager.getTransactionManager().commit();
-		TBTransactionImpl.debug();
+      this.testBean.testOneTransaction();
 	}
 
 }
