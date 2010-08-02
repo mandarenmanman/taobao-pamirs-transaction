@@ -37,17 +37,19 @@ public class TestBean implements ITestBean,TBTransactionHint {
 		
 		return result;
 	}
+	public void testOneTransaction()throws Exception{
+		executeHj("abc");
+		executeJz("abc");
+	}
 
-	@TBTransactionTypeAnnotation(TBTransactionType.INDEPEND)
 	public void executeHj(String s)throws Exception{
-		executeAppframe("ffffff");
+
 		Connection conn = null;
 		try{
  			 conn = TransactionManager.getConnection("hj");
 			 Statement statement = conn.createStatement();
 			 statement.execute("update tt set name = '" + s + "',num = num + 1,MODIFY_DATE = sysdate where product_template_id =" + this.threadNum);
 			 statement.close();
-			 TBTransactionImpl.debug();
 			 conn.commit();
 		}catch(Throwable e){
 			e.printStackTrace();
@@ -63,15 +65,13 @@ public class TestBean implements ITestBean,TBTransactionHint {
 	}
 
 	
-	@TBTransactionTypeAnnotation(TBTransactionType.JOIN)
-	public void executeAppframe(String s )throws Exception{
+	public void executeJz(String s )throws Exception{
 		Connection conn = null;
 		try{
 			 conn = TransactionManager.getConnection("jz");
 			 Statement statement = conn.createStatement();
 			 statement.execute("update test set name = '" + s + "' ,MODIFY_DATE = sysdate,num = num + 1 where id =" + this.threadNum);
 			 statement.close();
-				TBTransactionImpl.debug();
 		}finally{
 			if(conn != null){
 				conn.close();
