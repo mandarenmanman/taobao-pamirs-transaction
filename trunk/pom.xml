@@ -16,7 +16,7 @@
    <dependency>
   		<groupId>org.springframework</groupId>
 		<artifactId>spring-aspects</artifactId>
-		<version>2.5.6</version>
+		<version>2.5.6.SEC02</version>
 	</dependency>
 	<dependency>
 		<groupId>cglib</groupId>
