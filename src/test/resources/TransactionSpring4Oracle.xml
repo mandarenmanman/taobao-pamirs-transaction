@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="GB2312"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans default-autowire="byName">
+ 	<bean id="testBean" class="com.taobao.pamirs.transaction.test.TestBean"/> 	
+ 	<bean id="tbTransactionHandler" class="com.taobao.pamirs.transaction.TBTransactionHandler"/>
+ 	<bean id="transactionManager" class="com.taobao.pamirs.transaction.TransactionManager">
+	<property name="dataSourceMap">
+            <map>
+                 <entry key="hj">
+                    <ref local="hj"/>
+                </entry>
+				<entry key="jz">
+                    <ref local="jz"/>
+                </entry>
+            </map>
+        </property>
+    </bean>     	
+	<bean id="hj" class="com.taobao.pamirs.transaction.TBDataSourceImpl">
+	  <property name="dataSource">
+			<ref bean="hjBase"/>
+		</property>
+	</bean>
+	<bean id="jz" class="com.taobao.pamirs.transaction.TBDataSourceImpl">
+	  <property name="dataSource">
+			<ref bean="jzBase"/>
+		</property>
+	</bean>
+	<bean id="hjBase" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName">
+			<value>oracle.jdbc.driver.OracleDriver</value>
+		</property>
+		<property name="url">
+			<value>jdbc:oracle:thin:@192.168.213.201:1521:XE</value>
+		</property>
+		<property name="username">
+			<value>pamirs</value>
+		</property>
+		<property name="password">
+			<value>pamirs</value>
+		</property>
+	</bean>
+	<bean id="jzBase" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName">
+			<value>oracle.jdbc.driver.OracleDriver</value>
+		</property>
+		<property name="url">
+			<value>jdbc:oracle:thin:@192.168.213.201:1521:XE</value>
+		</property>
+		<property name="username">
+			<value>pamirs</value>
+		</property>
+		<property name="password">
+			<value>pamirs</value>
+		</property>
+	</bean>	
+ </beans>

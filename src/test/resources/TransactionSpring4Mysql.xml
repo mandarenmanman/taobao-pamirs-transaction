@@ -28,31 +28,31 @@
 	<bean id="hjBase" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">
 		<property name="driverClassName">
-			<value>oracle.jdbc.driver.OracleDriver</value>
+			<value>com.mysql.jdbc.Driver</value>
 		</property>
 		<property name="url">
-			<value>jdbc:oracle:thin:@localhost:1521:oracle9i</value>
+			<value>jdbc:mysql://192.168.207.120:3306/pamirs2?characterEncoding=UTF-8</value>
 		</property>
 		<property name="username">
-			<value>hj</value>
+			<value>root</value>
 		</property>
 		<property name="password">
-			<value>hj</value>
+			<value>pamirs</value>
 		</property>
 	</bean>
 	<bean id="jzBase" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">
 		<property name="driverClassName">
-			<value>oracle.jdbc.driver.OracleDriver</value>
+			<value>com.mysql.jdbc.Driver</value>
 		</property>
 		<property name="url">
-			<value>jdbc:oracle:thin:@localhost:1521:oracle9i</value>
+			<value>jdbc:mysql://192.168.213.201:3306/pamirs2?characterEncoding=UTF-8</value>
 		</property>
 		<property name="username">
-			<value>jz</value>
+			<value>root</value>
 		</property>
 		<property name="password">
-			<value>jz</value>
+			<value>pamirs</value>
 		</property>
 	</bean>	
  </beans>
