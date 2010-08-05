@@ -93,8 +93,8 @@ public class TBConnection implements java.sql.Connection {
 		}
 		try {
 			// 设置当前连接的服务器信息 和 链接发生的地址信息
-			String moduleName = "HJ"; // AIRootConfig.getInstance().getUniqueServerId();
-			String actionName = "Web";// CallManager.getCallPath();
+			String moduleName = "HJ"; //获取系统信息来向数据库设置客户端信息，方便数据库端的系统监控
+			String actionName = "Web";
 
 			// 如果不是oracle数据库，则不设置
 			if ("oracle".equals(dbType.toLowerCase())) {
@@ -405,15 +405,15 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	public Savepoint setSavepoint(String savePoint) throws SQLException {
-		return this.m_conn.setSavepoint(savePoint);
+		throw new SQLException("不支持的方法");
 	}
 
 	public Savepoint setSavepoint() throws SQLException {
-		return this.m_conn.setSavepoint();
+		throw new SQLException("不支持的方法");
 	}
 
 	public void releaseSavepoint(Savepoint savepoint) throws SQLException {
-		this.m_conn.releaseSavepoint(savepoint);
+		throw new SQLException("不支持的方法");
 	}
 
 	public int getHoldability() throws SQLException {
@@ -421,7 +421,7 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	public void rollback(Savepoint savepoint) throws SQLException {
-		this.m_conn.rollback(savepoint);
+		throw new SQLException("不支持的方法");
 	}
 
 	public Connection getRealConnection() {
