@@ -253,6 +253,9 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	public void realCommit() throws SQLException {
+		if(this.m_session == null && this.hasDDLOperator == true){
+			throw new SQLException("没有加入事务的连接不能执行数据修改操作");
+		}
 		m_conn.commit();
 		if (log.isDebugEnabled()) {
 			log.debug("commit Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
