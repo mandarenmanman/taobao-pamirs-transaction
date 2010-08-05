@@ -48,7 +48,7 @@ public class TestBean implements ITestBean,TBTransactionHint {
 		try{
  			 conn = TransactionManager.getConnection("hj");
 			 Statement statement = conn.createStatement();
-			 statement.execute("update tt set name = '" + s + "',num = num + 1,MODIFY_DATE = sysdate where product_template_id =" + this.threadNum);
+			 statement.execute("update tt set name = '" + s + "',num = num + 1 where product_template_id =" + this.threadNum);
 			 statement.close();
 			 conn.commit();
 		}catch(Throwable e){
@@ -70,7 +70,7 @@ public class TestBean implements ITestBean,TBTransactionHint {
 		try{
 			 conn = TransactionManager.getConnection("jz");
 			 Statement statement = conn.createStatement();
-			 statement.execute("update test set name = '" + s + "' ,MODIFY_DATE = sysdate,num = num + 1 where id =" + this.threadNum);
+			 statement.execute("update test set name = '" + s + "',num = num + 1 where id =" + this.threadNum);
 			 statement.close();
 		}finally{
 			if(conn != null){

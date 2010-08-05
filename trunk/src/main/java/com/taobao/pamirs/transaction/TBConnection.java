@@ -23,7 +23,6 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 /**
  * 
  * 数据库连接的一个包装类 主要重载了三个方法：close,commit,rollback。如果该连接属于一个事务 close,commit命令被忽略
@@ -33,23 +32,22 @@ import org.apache.commons.logging.LogFactory;
  * 
  */
 public class TBConnection implements java.sql.Connection {
-	private static transient Log log = LogFactory.getLog(TBConnection.class);
-	private static String S_SESSION_QUERY = "SELECT to_number(substr(dbms_session.unique_session_id,1,4),'xxxx') FROM dual";
-	private static boolean isSetConnectionInfo = true;
+	private static transient Log	log					= LogFactory.getLog(TBConnection.class);
+	private static String			S_SESSION_QUERY		= "SELECT to_number(substr(dbms_session.unique_session_id,1,4),'xxxx') FROM dual";
+	private String					validateSql4Mysql	= "SELECT 1+1";
+	private static boolean			isSetConnectionInfo	= true;
+	private String					dbType				= "";
+	private Connection				m_conn;
+	private String					sessionId;
+	private TBTransactionImpl		m_session;
+	private Exception				m_addr;
+	private long					m_openTime;
+	private int						m_queryTimeOut		= 0;
+	private boolean					hasDDLOperator		= false;
+	private String					dataSourceName;
+	private List<Statement>			m_statements		= new ArrayList<Statement>();
 
-	private Connection m_conn;
-	private String sessionId;
-	private TBTransactionImpl m_session;
-	private Exception m_addr;
-	private long m_openTime;
-	private int m_queryTimeOut = 0;
-	private boolean isOracle = true;
-	private boolean hasDDLOperator = false;
-	private String dataSourceName;
-	private List<Statement> m_statements = new ArrayList<Statement>();
-
-	private TBConnection(String aDataSourceName, Connection conn,
-			TBTransactionImpl session, int aQueryTimeOut)
+	private TBConnection(String aDataSourceName, Connection conn, TBTransactionImpl session, int aQueryTimeOut)
 			throws java.sql.SQLException {
 
 		this.m_conn = conn;
@@ -59,7 +57,7 @@ public class TBConnection implements java.sql.Connection {
 		this.m_queryTimeOut = aQueryTimeOut;
 		this.m_openTime = System.currentTimeMillis();
 		this.m_addr = new Exception();
-
+		this.dbType = this.m_conn.getMetaData().getDatabaseProductName();
 		if (isSetConnectionInfo == true) {
 			this.sessionId = this.queryDBSessionID();
 			// 设置当前连接的服务器信息 和 链接发生的地址信息
@@ -69,21 +67,22 @@ public class TBConnection implements java.sql.Connection {
 		}
 	}
 
-	public static TBConnection wrap(String aDataSourceName,
-			java.sql.Connection conn, TBTransactionImpl session,
+	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, TBTransactionImpl session,
 			int aQueryTimeOut) throws java.sql.SQLException {
 		return new TBConnection(aDataSourceName, conn, session, aQueryTimeOut);
 	}
 
-	public static TBConnection wrap(String aDataSourceName,
-			java.sql.Connection conn, int aQueryTimeOut)
+	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, int aQueryTimeOut)
 			throws java.sql.SQLException {
 		return new TBConnection(aDataSourceName, conn, null, aQueryTimeOut);
 	}
 
 	public String toString() {
-		return this.getClass() + "@" + this.hashCode() + ":SESSION_ID=" + this.sessionId
-				+ ":" + this.m_conn;
+		if ("oracle".equals(dbType.toLowerCase())) {
+			return this.getClass() + "@" + this.hashCode() + ":SESSION_ID=" + this.sessionId + ":" + this.m_conn;
+		} else {
+			return this.getClass() + "@" + this.hashCode() + ":" + this.m_conn;
+		}
 	}
 
 	// 设置当前连接的模块、action信息，如果设置出错，不影响系统正常运行
@@ -98,7 +97,7 @@ public class TBConnection implements java.sql.Connection {
 			String actionName = "Web";// CallManager.getCallPath();
 
 			// 如果不是oracle数据库，则不设置
-			if (this.isOracle == true) {
+			if ("oracle".equals(dbType.toLowerCase())) {
 				String sql = "call DBMS_APPLICATION_INFO.SET_MODULE (?,?)";
 
 				// 注意，这儿不能用重载后的方法，否则会把hasDDLOperator改变为true，
@@ -122,8 +121,7 @@ public class TBConnection implements java.sql.Connection {
 		String connHashCode = "连接的HashCodes";
 		String connAddr = "连接发生的地址";
 		sb.append(startTime + ":" + new java.sql.Date(conn.m_openTime) + "\n");
-		sb.append(spendTime + ":"
-				+ (System.currentTimeMillis() - conn.m_openTime) + "\n");
+		sb.append(spendTime + ":" + (System.currentTimeMillis() - conn.m_openTime) + "\n");
 		sb.append(connHashCode + ":" + conn.hashCode() + "\n");
 		sb.append(connAddr + ":" + getCallPath(conn.m_addr) + "\n");
 		return sb.toString();
@@ -133,15 +131,12 @@ public class TBConnection implements java.sql.Connection {
 		StringBuffer sb = new StringBuffer();
 		StackTraceElement stack[] = e.getStackTrace();
 		for (int i = 0; i < stack.length; i++) {
-			if (stack[i].getClassName().indexOf("$jsp") >= 0
-					|| stack[i].getClassName().indexOf(".dbconnmanager.") < 0
+			if (stack[i].getClassName().indexOf("$jsp") >= 0 || stack[i].getClassName().indexOf(".dbconnmanager.") < 0
 					&& stack[i].getClassName().indexOf("org.apache.") < 0
 					&& stack[i].getClassName().indexOf("com.ai.appframe2.bo.") < 0
-					&& stack[i].getClassName().indexOf("java.") < 0
-					&& stack[i].getClassName().indexOf("javax.") < 0) {
+					&& stack[i].getClassName().indexOf("java.") < 0 && stack[i].getClassName().indexOf("javax.") < 0) {
 				String lineNumber = "行数";
-				sb.append(stack[i].getClassName() + "."
-						+ stack[i].getMethodName() + "() " + lineNumber + ":"
+				sb.append(stack[i].getClassName() + "." + stack[i].getMethodName() + "() " + lineNumber + ":"
 						+ stack[i].getLineNumber() + "\n");
 			}
 		}
@@ -156,13 +151,20 @@ public class TBConnection implements java.sql.Connection {
 	public void judgeConnAvailable() throws Exception {
 
 		// 如果是oracle数据库，则设置其连接session的信息，否则
-		if (this.isOracle == true) {
+		if ("oracle".equals(dbType.toLowerCase())) {
 			String sql = "call DBMS_APPLICATION_INFO.SET_MODULE (?,?)";
 			PreparedStatement stmt = this.m_conn.prepareStatement(sql);
 			stmt.setString(1, "");
 			stmt.setString(2, "");
 			stmt.execute();
 			stmt.close();
+		} else if ("mysql".equals(dbType.toLowerCase())) {
+			// 注意，这儿不能用重载后的方法，否则会把hasDDLOperator改变为true，
+			PreparedStatement stmt = this.m_conn.prepareStatement(validateSql4Mysql);
+
+			stmt.execute();
+			stmt.close();
+
 		} else {
 			throw new Exception("请提供其它数据库的校验方式");
 		}
@@ -231,8 +233,7 @@ public class TBConnection implements java.sql.Connection {
 		this.m_statements.clear();
 
 		if (log.isDebugEnabled()) {
-			log.debug("clean Statements:SESSION_ID=" + this.sessionId + ":"
-					+ this.m_conn);
+			log.debug("clean Statements:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
 		}
 
 		if (m_session == null) {// 没有加入事务
@@ -254,16 +255,14 @@ public class TBConnection implements java.sql.Connection {
 	public void realCommit() throws SQLException {
 		m_conn.commit();
 		if (log.isDebugEnabled()) {
-			log.debug("commit Connection:SESSION_ID=" + this.sessionId + ":"
-					+ this.m_conn);
+			log.debug("commit Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
 		}
 	}
 
 	public void realRollback() throws SQLException {
 		m_conn.rollback();
 		if (log.isDebugEnabled()) {
-			log.debug("rollback Connection:SESSION_ID=" + this.sessionId + ":"
-					+ this.m_conn);
+			log.debug("rollback Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
 		}
 	}
 
@@ -271,8 +270,7 @@ public class TBConnection implements java.sql.Connection {
 		this.m_session = null;
 		m_conn.close();
 		if (log.isDebugEnabled()) {
-			log.debug("close Connection:SESSION_ID=" + this.sessionId + ":"
-					+ this.m_conn);
+			log.debug("close Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
 		}
 	}
 
@@ -288,39 +286,29 @@ public class TBConnection implements java.sql.Connection {
 		return new TBStatement(this, m_conn.createStatement(), m_queryTimeOut);
 	}
 
-	public Statement createStatement(int resultSetType, int resultSetConcurrency)
-			throws SQLException {
-		return new TBStatement(this, m_conn.createStatement(resultSetType,
-				resultSetConcurrency), this.m_queryTimeOut);
+	public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
+		return new TBStatement(this, m_conn.createStatement(resultSetType, resultSetConcurrency), this.m_queryTimeOut);
 	}
 
-	public Statement createStatement(int resultSetType,
-			int resultSetConcurrency, int resultSetHoldability)
+	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
 			throws SQLException {
-		return new TBStatement(this, this.m_conn.createStatement(resultSetType,
-				resultSetConcurrency, resultSetHoldability),
-				this.m_queryTimeOut);
+		return new TBStatement(this, this.m_conn.createStatement(resultSetType, resultSetConcurrency,
+				resultSetHoldability), this.m_queryTimeOut);
 	}
 
-	public PreparedStatement prepareStatement(String sql, int resultSetType,
-			int resultSetConcurrency, int resultSetHoldability)
-			throws SQLException {
-		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql,
-				resultSetType, resultSetConcurrency, resultSetHoldability),
-				sql, this.m_queryTimeOut);
+	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
+			int resultSetHoldability) throws SQLException {
+		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql, resultSetType, resultSetConcurrency,
+				resultSetHoldability), sql, this.m_queryTimeOut);
 
 	}
 
-	public PreparedStatement prepareStatement(String sql, int columnIndexes[])
-			throws SQLException {
-		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql,
-				columnIndexes), sql, this.m_queryTimeOut);
+	public PreparedStatement prepareStatement(String sql, int columnIndexes[]) throws SQLException {
+		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql, columnIndexes), sql, this.m_queryTimeOut);
 	}
 
-	public PreparedStatement prepareStatement(String sql, String columnNames[])
-			throws SQLException {
-		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql,
-				columnNames), sql, this.m_queryTimeOut);
+	public PreparedStatement prepareStatement(String sql, String columnNames[]) throws SQLException {
+		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql, columnNames), sql, this.m_queryTimeOut);
 	}
 
 	public boolean getAutoCommit() throws SQLException {
@@ -359,43 +347,36 @@ public class TBConnection implements java.sql.Connection {
 		return m_conn.nativeSQL(sql);
 	}
 
-	public java.sql.CallableStatement prepareCall(String sql)
-			throws SQLException {
-		return new TBCallableStatement(this, m_conn.prepareCall(sql), sql,
-				this.m_queryTimeOut);
+	public java.sql.CallableStatement prepareCall(String sql) throws SQLException {
+		return new TBCallableStatement(this, m_conn.prepareCall(sql), sql, this.m_queryTimeOut);
 
 	}
 
-	public java.sql.CallableStatement prepareCall(String sql,
-			int resultSetType, int resultSetConcurrency) throws SQLException {
-		return new TBCallableStatement(this, m_conn.prepareCall(sql,
-				resultSetType, resultSetConcurrency), sql, this.m_queryTimeOut);
-	}
-
-	public CallableStatement prepareCall(String sql, int resultSetType,
-			int resultSetConcurrency, int resultSetHoldability)
+	public java.sql.CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
 			throws SQLException {
-		return new TBCallableStatement(this, this.m_conn.prepareCall(sql,
-				resultSetType, resultSetConcurrency, resultSetHoldability),
-				sql, this.m_queryTimeOut);
-	}
-
-	public java.sql.PreparedStatement prepareStatement(String sql)
-			throws SQLException {
-		return new TBPreparedStatement(this, m_conn.prepareStatement(sql), sql,
+		return new TBCallableStatement(this, m_conn.prepareCall(sql, resultSetType, resultSetConcurrency), sql,
 				this.m_queryTimeOut);
 	}
 
-	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys)
-			throws SQLException {
-		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql,
-				autoGeneratedKeys), sql, this.m_queryTimeOut);
+	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
+			int resultSetHoldability) throws SQLException {
+		return new TBCallableStatement(this, this.m_conn.prepareCall(sql, resultSetType, resultSetConcurrency,
+				resultSetHoldability), sql, this.m_queryTimeOut);
 	}
 
-	public java.sql.PreparedStatement prepareStatement(String sql,
-			int resultSetType, int resultSetConcurrency) throws SQLException {
-		return new TBPreparedStatement(this, m_conn.prepareStatement(sql,
-				resultSetType, resultSetConcurrency), sql, this.m_queryTimeOut);
+	public java.sql.PreparedStatement prepareStatement(String sql) throws SQLException {
+		return new TBPreparedStatement(this, m_conn.prepareStatement(sql), sql, this.m_queryTimeOut);
+	}
+
+	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+		return new TBPreparedStatement(this, this.m_conn.prepareStatement(sql, autoGeneratedKeys), sql,
+				this.m_queryTimeOut);
+	}
+
+	public java.sql.PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
+			throws SQLException {
+		return new TBPreparedStatement(this, m_conn.prepareStatement(sql, resultSetType, resultSetConcurrency), sql,
+				this.m_queryTimeOut);
 	}
 
 	public void setAutoCommit(boolean autoCommit) throws SQLException {
@@ -456,7 +437,7 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	protected String queryDBSessionID() {
-		if (this.isOracle == false) {
+		if ("oracle".equals(dbType.toLowerCase())) {
 			return "Only ORACLE has SESSION_ID";
 		}
 		String result = "";
@@ -473,8 +454,7 @@ public class TBConnection implements java.sql.Connection {
 		return result;
 	}
 
-	public Array createArrayOf(String typeName, Object[] elements)
-			throws SQLException {
+	public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
 		return this.m_conn.createArrayOf(typeName, elements);
 	}
 
@@ -494,8 +474,7 @@ public class TBConnection implements java.sql.Connection {
 		return this.m_conn.createSQLXML();
 	}
 
-	public Struct createStruct(String typeName, Object[] attributes)
-			throws SQLException {
+	public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
 		return this.m_conn.createStruct(typeName, attributes);
 	}
 
@@ -511,14 +490,12 @@ public class TBConnection implements java.sql.Connection {
 		return this.m_conn.isValid(timeout);
 	}
 
-	public void setClientInfo(Properties properties)
-			throws SQLClientInfoException {
+	public void setClientInfo(Properties properties) throws SQLClientInfoException {
 		this.m_conn.setClientInfo(properties);
 
 	}
 
-	public void setClientInfo(String name, String value)
-			throws SQLClientInfoException {
+	public void setClientInfo(String name, String value) throws SQLClientInfoException {
 		this.m_conn.setClientInfo(name, value);
 
 	}

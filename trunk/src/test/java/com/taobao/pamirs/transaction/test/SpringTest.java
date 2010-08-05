@@ -13,7 +13,7 @@ import com.taobao.pamirs.transaction.TBTransactionImpl;
  * @author xuannan
  *
  */
-@SpringApplicationContext( { "TransactionSpring.xml" })
+@SpringApplicationContext( { "TransactionSpring4Mysql.xml" })
 public class SpringTest extends UnitilsJUnit4{
 	@SpringBeanByName
 	ITestBean testBean;
