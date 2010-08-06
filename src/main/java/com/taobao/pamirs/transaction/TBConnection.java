@@ -44,6 +44,7 @@ public class TBConnection implements java.sql.Connection {
 	private long					m_openTime;
 	private int						m_queryTimeOut		= 0;
 	private boolean					hasDDLOperator		= false;
+	private boolean					hasDealTransaction  = false;
 	private String					dataSourceName;
 	private List<Statement>			m_statements		= new ArrayList<Statement>();
 
@@ -271,6 +272,8 @@ public class TBConnection implements java.sql.Connection {
 
 	public void realClose() throws SQLException {
 		this.m_session = null;
+		//在关闭原始连接前，将原始连接改为可以自动提交
+		this.m_conn.setAutoCommit(true);
 		m_conn.close();
 		if (log.isDebugEnabled()) {
 			log.debug("close Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);

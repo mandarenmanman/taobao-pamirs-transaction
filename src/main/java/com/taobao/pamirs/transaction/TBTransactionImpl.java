@@ -23,7 +23,7 @@ public class TBTransactionImpl {
 	private static transient Log log = LogFactory
 			.getLog(TBTransactionImpl.class);
 	protected static List<TBTransactionImpl> m_LeaveTransaction = Collections.synchronizedList(new ArrayList<TBTransactionImpl>());
-	private static boolean isCanGetConnectionOnNoStartTransaction = false;
+	private static boolean isCanGetConnectionOnNoStartTransaction = true;
 	protected int timeOut = -1;
 	boolean m_isCommitError = false;
 	/**
@@ -74,10 +74,10 @@ public class TBTransactionImpl {
 			} else {
 				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut);
 				this.m_conn.put(sourceName, result);
-			}
-			//将连接设置为不能自动提交
-			if (result.getAutoCommit() == true) {
-				result.setAutoCommit(false);
+				//将连接设置为不能自动提交
+				if (result.getAutoCommit() == true) {
+					result.setAutoCommit(false);
+				}
 			}
 		}
 		return result;
