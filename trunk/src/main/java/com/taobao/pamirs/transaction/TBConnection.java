@@ -44,7 +44,6 @@ public class TBConnection implements java.sql.Connection {
 	private long					m_openTime;
 	private int						m_queryTimeOut		= 0;
 	private boolean					hasDDLOperator		= false;
-	private boolean					hasDealTransaction  = false;
 	private String					dataSourceName;
 	private List<Statement>			m_statements		= new ArrayList<Statement>();
 
@@ -239,13 +238,13 @@ public class TBConnection implements java.sql.Connection {
 
 		if (m_session == null) {// 没有加入事务
 			this.realClose();
-//		} else if (this.hasDDLOperator == false) {// 没有进行数据修改操作
-//			if (log.isDebugEnabled()) {
-//				log.debug("因为连接没有执行任何数据修改的操作，虽然加入了事务也直接关闭");
-//			}
-//			// 一定要从事务环境中清除连接
-//			this.m_session.removeConnection(this.dataSourceName);
-//			this.realClose();
+		} else if (this.hasDDLOperator == false) {// 没有进行数据修改操作
+			if (log.isDebugEnabled()) {
+				log.debug("因为连接没有执行任何数据修改的操作，虽然加入了事务也直接关闭");
+			}
+			// 一定要从事务环境中清除连接
+			this.m_session.removeConnection(this.dataSourceName);
+			this.realClose();
 		} else {
 			if (log.isDebugEnabled()) {
 				log.debug("已经执行了数据修改操作的加入事务conneciton，在事务提交的时候才执行关闭操作");
