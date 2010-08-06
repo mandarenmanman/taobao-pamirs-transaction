@@ -239,13 +239,13 @@ public class TBConnection implements java.sql.Connection {
 
 		if (m_session == null) {// 没有加入事务
 			this.realClose();
-		} else if (this.hasDDLOperator == false) {// 没有进行数据修改操作
-			if (log.isDebugEnabled()) {
-				log.debug("因为连接没有执行任何数据修改的操作，虽然加入了事务也直接关闭");
-			}
-			// 一定要从事务环境中清除连接
-			this.m_session.removeConnection(this.dataSourceName);
-			this.realClose();
+//		} else if (this.hasDDLOperator == false) {// 没有进行数据修改操作
+//			if (log.isDebugEnabled()) {
+//				log.debug("因为连接没有执行任何数据修改的操作，虽然加入了事务也直接关闭");
+//			}
+//			// 一定要从事务环境中清除连接
+//			this.m_session.removeConnection(this.dataSourceName);
+//			this.realClose();
 		} else {
 			if (log.isDebugEnabled()) {
 				log.debug("已经执行了数据修改操作的加入事务conneciton，在事务提交的时候才执行关闭操作");
@@ -275,6 +275,7 @@ public class TBConnection implements java.sql.Connection {
 		//在关闭原始连接前，将原始连接改为可以自动提交
 		this.m_conn.setAutoCommit(true);
 		m_conn.close();
+		this.m_conn = null;
 		if (log.isDebugEnabled()) {
 			log.debug("close Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
 		}
@@ -443,7 +444,7 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	protected String queryDBSessionID() {
-		if ("oracle".equals(dbType.toLowerCase())) {
+		if (!"oracle".equals(dbType.toLowerCase())) {
 			return "Only ORACLE has SESSION_ID";
 		}
 		String result = "";

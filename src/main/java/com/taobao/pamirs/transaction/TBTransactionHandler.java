@@ -149,7 +149,7 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 			}
 			if (log.isDebugEnabled()) {
 				log.debug("execute " + method.getDeclaringClass().getName()
-						+ "." + method.getName() + " ºÄÊ±:"
+						+ "." + method.getName() + " ºÄÊ±(ms):"
 						+ (System.currentTimeMillis() - startTime));
 			}
 		}

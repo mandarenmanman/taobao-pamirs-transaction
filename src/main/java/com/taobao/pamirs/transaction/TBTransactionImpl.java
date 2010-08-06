@@ -23,7 +23,7 @@ public class TBTransactionImpl {
 	private static transient Log log = LogFactory
 			.getLog(TBTransactionImpl.class);
 	protected static List<TBTransactionImpl> m_LeaveTransaction = Collections.synchronizedList(new ArrayList<TBTransactionImpl>());
-	private static boolean isCanGetConnectionOnNoStartTransaction = true;
+	private static boolean isCanGetConnectionOnNoStartTransaction = false;
 	protected int timeOut = -1;
 	boolean m_isCommitError = false;
 	/**
