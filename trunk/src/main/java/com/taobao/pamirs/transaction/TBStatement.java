@@ -111,7 +111,7 @@ public class TBStatement implements Statement {
 	}
 
 	public void setCursorName(String name) throws SQLException {
-		this.setCursorName(name);
+		this.m_statement.setCursorName(name);
 	}
 
 	public boolean execute(String sql) throws SQLException {
