@@ -77,28 +77,28 @@ public class TBPreparedStatement extends TBStatement implements
 
 	public void setBoolean(int parameterIndex, boolean x) throws SQLException {
 		((PreparedStatement) this.m_statement).setBoolean(parameterIndex, x);
-		this.m_parameters.add(parameterIndex - 1, new Boolean(x));
+		this.m_parameters.add(parameterIndex - 1, Boolean.valueOf(x));
 	}
 
 	public void setByte(int parameterIndex, byte x) throws SQLException {
 		((PreparedStatement) this.m_statement).setByte(parameterIndex, x);
-		this.m_parameters.add(parameterIndex - 1, new Byte(x));
+		this.m_parameters.add(parameterIndex - 1, Byte.valueOf(x));
 	}
 
 	public void setShort(int parameterIndex, short x) throws SQLException {
 		((PreparedStatement) this.m_statement).setShort(parameterIndex, x);
-		this.m_parameters.add(parameterIndex - 1, new Short(x));
+		this.m_parameters.add(parameterIndex - 1, Short.valueOf(x));
 
 	}
 
 	public void setInt(int parameterIndex, int x) throws SQLException {
 		((PreparedStatement) this.m_statement).setInt(parameterIndex, x);
-		this.m_parameters.add(parameterIndex - 1, new Integer(x));
+		this.m_parameters.add(parameterIndex - 1, Integer.valueOf(x));
 	}
 
 	public void setLong(int parameterIndex, long x) throws SQLException {
 		((PreparedStatement) this.m_statement).setLong(parameterIndex, x);
-		this.m_parameters.add(parameterIndex - 1, new Long(x));
+		this.m_parameters.add(parameterIndex - 1, Long.valueOf(x));
 
 	}
 
