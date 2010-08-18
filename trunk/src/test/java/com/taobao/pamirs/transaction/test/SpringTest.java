@@ -1,33 +1,50 @@
-package com.taobao.pamirs.transaction.test;
+package com.taobao.pamirs.unittest.test;
 
 
 import org.unitils.UnitilsJUnit4;
 import org.unitils.spring.annotation.SpringApplicationContext;
 import org.unitils.spring.annotation.SpringBeanByName;
 
-import com.taobao.pamirs.transaction.TransactionManager;
-import com.taobao.pamirs.transaction.TBTransactionImpl;
+import com.taobao.pamirs.unittest.CreateTestUnit;
+import com.taobao.pamirs.unittest.MonitorCallItem;
+import com.taobao.pamirs.unittest.MonitorManager;
+import com.taobao.pamirs.unittest.TestConfig;
 
 /**
  * 
  * @author xuannan
  *
  */
-@SpringApplicationContext( { "TransactionSpring4Mysql.xml" })
+@SpringApplicationContext( { "SpringConfig.xml" })
 public class SpringTest extends UnitilsJUnit4{
 	@SpringBeanByName
-	ITestBean testBean;
-	public void setTestBean(ITestBean testBean) {
-		this.testBean = testBean;
-	}
-	
+	OrderManager orderManager;	
 	@org.junit.Test
-	public void testCloseConnectionOnlySelect() throws Exception{
-		this.testBean.executeSelect("sss");
+	public void testUnitCreate() throws Exception{
+		MonitorManager.startMonitor(new MonitorCallItem());
+		this.orderManager.createOrder(101,1000,5);
+		MonitorCallItem root = MonitorManager.getRoot().getChildren().get(0);
+		MonitorManager.clearMonitor();	
+		StringBuilder builder = new StringBuilder();
+		root.print(builder, 1);	
+		System.out.println(builder);
+		CreateTestUnit.writeTestData(root, new TestConfig[] {
+				new TestConfig("orderManager", "createOrder",
+						new String[] { "productManager.queryProduct" }, null),
+				new TestConfig("userCheck", "checkUser", null, null),
+				new TestConfig("rateManager", "computer", null, null) });
 	}
+
 	@org.junit.Test
-	public void test() throws Exception{
-      this.testBean.testOneTransaction();
+	public void testUnitTestRun() throws Exception{
+		CreateTestUnit.runTest("orderManager$createOrder");
+		CreateTestUnit.runTest("rateManager$computer");
+		CreateTestUnit.runTest("userCheck$checkUser");
 	}
+
+	public void setOrderManager(OrderManager orderManager) {
+		this.orderManager = orderManager;
+	}
+
 
 }
