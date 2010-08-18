@@ -6,6 +6,8 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.aopalliance.intercept.MethodInvocation;
+
 /**
  * 
  * @author xuannan
@@ -42,5 +44,9 @@ public class TransactionManager{
 	public static TBTransactionManager getTransactionManager() {
        return s_transactionManager.get();
 	}
-	    
+
+	public static Object executeMethod(MethodInvocation invocation,
+			TBTransactionType transactionType) throws Throwable {
+		return TransactionRoundAdvice.invokeInner(invocation, transactionType);
+	}
 }

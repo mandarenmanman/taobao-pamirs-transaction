@@ -33,10 +33,9 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 	@SuppressWarnings("unchecked")
 	protected Object[] getAdvicesAndAdvisorsForBean(Class beanClass,
 			String beanName, TargetSource targetSource) throws BeansException {
-
-		if (beanClass.isAnnotationPresent(TBTransactionAnnotation.class) || TBTransactionHint.class.isAssignableFrom(beanClass)) {
+        if (beanClass.isAnnotationPresent(TBTransactionAnnotation.class) || TBTransactionHint.class.isAssignableFrom(beanClass)) {
 			if (log.isDebugEnabled()) {
-				log.debug(beanClass + ":" + beanName);
+				log.debug("事务包裹" + beanClass + ":" + beanName);
 			}
 			return asdvisors;
 		}
@@ -60,6 +59,10 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 	private static transient Log log = LogFactory
 			.getLog(TransactionRoundAdvice.class);
 
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		TBTransactionType transactionType = getTBTransactionType(invocation.getMethod());
+		return invokeInner(invocation,transactionType);
+	}
 	public static TBTransactionType getTBTransactionType(Method method) {
 		TBTransactionTypeAnnotation transactionTypeAnn = method
 				.getAnnotation(TBTransactionTypeAnnotation.class);
@@ -70,12 +73,11 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 		}
 	}
 
-	public Object invoke(MethodInvocation invocation) throws Throwable {
-		Method method = invocation.getMethod();
+	public static Object invokeInner(MethodInvocation invocation,TBTransactionType transactionType) throws Throwable {
+		String methodName =invocation.getMethod().getDeclaringClass().getName() + "."+ invocation.getMethod().getName(); 
 		Object result = null;
 		long startTime = System.currentTimeMillis();
 		// 执行要处理对象的原本方法
-		TBTransactionType transactionType = getTBTransactionType(method);
 		boolean isSelfStartTransaction = false;
 		boolean isSuspend = false;
 		boolean isStartTransactionInParent = TransactionManager
@@ -103,8 +105,7 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 			}
 
 			if (log.isDebugEnabled()) {
-				log.debug(method.getDeclaringClass().getName() + "."
-						+ method.getName() + ": suspendTransaction = "
+				log.debug(methodName + ": suspendTransaction = "
 						+ isSuspend + ", startTransaction = "
 						+ isSelfStartTransaction);
 			}
@@ -112,8 +113,7 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 			if (isSelfStartTransaction == true) {// 自己开始的,则提交事务
 				TransactionManager.getTransactionManager().commit();
 				if (log.isDebugEnabled()) {
-					log.debug(method.getDeclaringClass().getName() + "."
-							+ method.getName() + ": commitTransaction ");
+					log.debug(methodName + ": commitTransaction ");
 				}
 			}
 		} catch (Throwable e) {
@@ -121,14 +121,12 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 				if (isSelfStartTransaction == true) {// 自己开始的,则回滚事务
 					TransactionManager.getTransactionManager().rollback();
 					if (log.isDebugEnabled()) {
-						log.debug(method.getDeclaringClass().getName() + "."
-								+ method.getName() + ": rollbackTransaction ");
+						log.debug(methodName + ": rollbackTransaction ");
 					}
 				} else {// 设置事务为只能回滚
 					TransactionManager.getTransactionManager().setRollbackOnly();
 					if (log.isDebugEnabled()) {
-						log.debug(method.getDeclaringClass().getName() + "."
-								+ method.getName() + ": setRollbackOnly ");
+						log.debug(methodName + ": setRollbackOnly ");
 					}
 				}
 			} catch (Throwable ex) {
@@ -140,16 +138,14 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 				if (isSuspend == true) {// 恢复挂起的事务
 					TransactionManager.getTransactionManager().resume();
 					if (log.isDebugEnabled()) {
-						log.debug(method.getDeclaringClass().getName() + "."
-								+ method.getName() + ": resumeTransaction ");
+						log.debug(methodName + ": resumeTransaction ");
 					}
 				}
 			} catch (Throwable ex) {
 				log.fatal("恢复挂起的事务失败", ex);
 			}
 			if (log.isDebugEnabled()) {
-				log.debug("execute " + method.getDeclaringClass().getName()
-						+ "." + method.getName() + " 耗时(ms):"
+				log.debug("execute " + methodName + " 耗时(ms):"
 						+ (System.currentTimeMillis() - startTime));
 			}
 		}
