@@ -1,5 +1,6 @@
 package com.taobao.pamirs.transaction;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,8 +10,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 
 /**
  * 系统时间管理，为了避免主机间时间不一致导致的问题，统一获取数据库时间
@@ -18,8 +17,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
  * @author xuannan
  * 
  */
-@TBTransactionAnnotation
-public class TBSysdateManager implements BeanPostProcessor {
+public class TBSysdateManager {
 	private static transient Log log = LogFactory
 			.getLog(TBSysdateManager.class);
 	/**
@@ -31,13 +29,16 @@ public class TBSysdateManager implements BeanPostProcessor {
 	 */
 	private static long initialLocalServerBaseTime = -1;
 
-	private DataSource dataSource;
+	private static DataSource dataSource;
 
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
+	public void setDataSource(DataSource aDataSource) {
+		dataSource = aDataSource;
 	}
 
 	public static long getCurrentTimeMillis() {
+		 if(initialDataBaseTime == -2){
+			 initial();
+		 }
 		if (initialDataBaseTime > 0) {
 			return System.currentTimeMillis() - initialLocalServerBaseTime
 					+ initialDataBaseTime;
@@ -47,13 +48,20 @@ public class TBSysdateManager implements BeanPostProcessor {
 		}
 	}
 
-	public Object postProcessBeforeInitialization(Object bean, String beanName)
-			throws BeansException {
-		return bean;
-	}
+	private static void initial() {
+		try {
+			Method method = TBSysdateManager.class.getDeclaredMethod("initialInner",
+					new Class[] {});
+			TBMethodInvocation invocation = new TBMethodInvocation(method,
+					null, null);
+			TransactionManager.executeMethod(invocation, TBTransactionType.JOIN);
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+		}
 
-	public Object postProcessAfterInitialization(Object bean, String beanName)
-			throws BeansException {
+	}
+	
+	public static void initialInner(){
 		if (dataSource == null) {
 			initialDataBaseTime = -1;
 		}
@@ -90,6 +98,5 @@ public class TBSysdateManager implements BeanPostProcessor {
 			}
 		}
 		log.info("初始化系统时间成功,数据库初始时间：" + initialDataBaseTime + " 当前主机时间：" + initialLocalServerBaseTime);
-		return bean;
 	}
 }
