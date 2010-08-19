@@ -13,7 +13,7 @@ import com.taobao.pamirs.transaction.TransactionManager;
  *
  */
 
-@SpringApplicationContext( { "TransactionSpring4Mysql.xml" })
+@SpringApplicationContext( { "TransactionSpring4Oracle.xml" })
 public class SpringTest extends UnitilsJUnit4{
 	@SpringBeanByName
 	ITestBean testBean;
@@ -21,7 +21,7 @@ public class SpringTest extends UnitilsJUnit4{
 		this.testBean = testBean;
 	}
 	
-	@org.junit.Test
+	//@org.junit.Test
 	public void testCloseConnectionOnlySelect() throws Exception{
 		this.testBean.executeSelect("sss");
 	}
