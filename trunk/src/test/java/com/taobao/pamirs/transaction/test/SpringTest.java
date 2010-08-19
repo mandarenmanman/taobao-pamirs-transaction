@@ -1,50 +1,41 @@
-package com.taobao.pamirs.unittest.test;
 
-
+package com.taobao.pamirs.transaction.test;
+import org.junit.Test;
 import org.unitils.UnitilsJUnit4;
 import org.unitils.spring.annotation.SpringApplicationContext;
 import org.unitils.spring.annotation.SpringBeanByName;
 
-import com.taobao.pamirs.unittest.CreateTestUnit;
-import com.taobao.pamirs.unittest.MonitorCallItem;
-import com.taobao.pamirs.unittest.MonitorManager;
-import com.taobao.pamirs.unittest.TestConfig;
+import com.taobao.pamirs.transaction.TransactionManager;
 
 /**
  * 
  * @author xuannan
  *
  */
-@SpringApplicationContext( { "SpringConfig.xml" })
+
+@SpringApplicationContext( { "TransactionSpring4Mysql.xml" })
 public class SpringTest extends UnitilsJUnit4{
 	@SpringBeanByName
-	OrderManager orderManager;	
+	ITestBean testBean;
+	public void setTestBean(ITestBean testBean) {
+		this.testBean = testBean;
+	}
+	
 	@org.junit.Test
-	public void testUnitCreate() throws Exception{
-		MonitorManager.startMonitor(new MonitorCallItem());
-		this.orderManager.createOrder(101,1000,5);
-		MonitorCallItem root = MonitorManager.getRoot().getChildren().get(0);
-		MonitorManager.clearMonitor();	
-		StringBuilder builder = new StringBuilder();
-		root.print(builder, 1);	
-		System.out.println(builder);
-		CreateTestUnit.writeTestData(root, new TestConfig[] {
-				new TestConfig("orderManager", "createOrder",
-						new String[] { "productManager.queryProduct" }, null),
-				new TestConfig("userCheck", "checkUser", null, null),
-				new TestConfig("rateManager", "computer", null, null) });
+	public void testCloseConnectionOnlySelect() throws Exception{
+		this.testBean.executeSelect("sss");
 	}
-
-	@org.junit.Test
-	public void testUnitTestRun() throws Exception{
-		CreateTestUnit.runTest("orderManager$createOrder");
-		CreateTestUnit.runTest("rateManager$computer");
-		CreateTestUnit.runTest("userCheck$checkUser");
+	//@org.junit.Test
+	public void test() throws Exception{
+      this.testBean.testOneTransaction();
 	}
-
-	public void setOrderManager(OrderManager orderManager) {
-		this.orderManager = orderManager;
+	@Test
+	public void testIndepend() throws Exception{
+		TransactionManager.getTransactionManager().begin();
+		this.testBean.insertHJ(-100);
+		this.testBean.selectHJ(-100);
+		this.testBean.insertHJIndepend(-200);
+		this.testBean.selectHJ(-200);
+		TransactionManager.getTransactionManager().rollback();
 	}
-
-
-}
+}	
