@@ -30,7 +30,7 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 	}
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object[] getAdvicesAndAdvisorsForBean(Class beanClass,
 			String beanName, TargetSource targetSource) throws BeansException {
         if (beanClass.isAnnotationPresent(TBTransactionAnnotation.class) || TBTransactionHint.class.isAssignableFrom(beanClass)) {

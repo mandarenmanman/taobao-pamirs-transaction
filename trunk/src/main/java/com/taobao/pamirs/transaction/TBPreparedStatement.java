@@ -208,7 +208,11 @@ public class TBPreparedStatement extends TBStatement implements
 			dealWithQueryTimeOutException(e, m_sql);
 			return false;
 		} finally {
-			this.m_conn.setHasDDLOperator();
+			// ibatis的SqlExecutor永远只调用PreparedStatement的execute方法 无视executeQuery
+			// 所以要在这里判断下sql是不是select
+			if (! this.m_sql.trim().toLowerCase().startsWith("select")) {
+				this.m_conn.setHasDDLOperator();
+			}
 		}
 
 	}
