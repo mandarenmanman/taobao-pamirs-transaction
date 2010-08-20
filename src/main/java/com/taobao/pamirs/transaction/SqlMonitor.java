@@ -9,7 +9,7 @@ public class SqlMonitor {
 	private static transient Log log = LogFactory
 			.getLog(SqlMonitor.class);
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	public static void monitorSQL(String statement, long runTime,
 			long finishTime, List parameter, int executeNum) {
 		if (log.isDebugEnabled()) {
