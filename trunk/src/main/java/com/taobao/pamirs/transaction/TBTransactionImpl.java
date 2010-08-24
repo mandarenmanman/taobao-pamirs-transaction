@@ -47,6 +47,10 @@ public class TBTransactionImpl {
 	 */
 	protected long m_startTime;
 
+	public void setCanGetConnectionOnNoStartTransaction(boolean isCanGetConnectionOnNoStartTransaction) {
+		log.info("canGetConnectionOnNoStartTransaction set to " + isCanGetConnectionOnNoStartTransaction);
+		TBTransactionImpl.isCanGetConnectionOnNoStartTransaction = isCanGetConnectionOnNoStartTransaction;
+	}
 
 	public TBTransactionImpl() {
 	}
