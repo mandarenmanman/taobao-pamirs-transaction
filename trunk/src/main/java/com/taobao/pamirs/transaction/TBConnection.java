@@ -93,7 +93,7 @@ public class TBConnection implements java.sql.Connection {
 		}
 		try {
 			// 设置当前连接的服务器信息 和 链接发生的地址信息
-			String moduleName = "HJ"; //获取系统信息来向数据库设置客户端信息，方便数据库端的系统监控
+			String moduleName = "HJ"; // 获取系统信息来向数据库设置客户端信息，方便数据库端的系统监控
 			String actionName = "Web";
 
 			// 如果不是oracle数据库，则不设置
@@ -253,8 +253,11 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	public void realCommit() throws SQLException {
-		if(this.m_session == null && this.hasDDLOperator == true){
+		if (this.m_session == null && this.hasDDLOperator == true) {
 			throw new SQLException("没有加入事务的连接不能执行数据修改操作，请在bean上增加注解@TBTransactionAnnotation或者实现接口TBTransactionHint");
+		}
+		if (m_conn.getAutoCommit()) {
+			m_conn.setAutoCommit(false);
 		}
 		m_conn.commit();
 		if (log.isDebugEnabled()) {
@@ -271,7 +274,7 @@ public class TBConnection implements java.sql.Connection {
 
 	public void realClose() throws SQLException {
 		this.m_session = null;
-		//在关闭原始连接前，将原始连接改为可以自动提交
+		// 在关闭原始连接前，将原始连接改为可以自动提交
 		this.m_conn.setAutoCommit(true);
 		m_conn.close();
 		this.m_conn = null;
