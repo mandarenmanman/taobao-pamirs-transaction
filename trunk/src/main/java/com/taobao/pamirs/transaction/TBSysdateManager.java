@@ -64,6 +64,7 @@ public class TBSysdateManager {
 	public static void initialInner(){
 		if (dataSource == null) {
 			initialDataBaseTime = -1;
+			return;
 		}
 		Connection conn = null;
 		try {
