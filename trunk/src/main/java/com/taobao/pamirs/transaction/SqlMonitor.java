@@ -17,7 +17,7 @@ public class SqlMonitor {
 			builder.append(Thread.currentThread() + "Ö´ÐÐSQL :" + statement);
 			if(parameter != null){
 				for(int i=0;i<parameter.size();i++){
-					builder.append(" ").append("P" + i+"{" + parameter.get(i)+"}");
+					builder.append(" ").append("P" + (i+1) +"{" + parameter.get(i)+"}");
 				}
 			}			
 			log.debug(builder.toString());
