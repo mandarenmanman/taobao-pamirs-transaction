@@ -13,7 +13,14 @@ public class SqlMonitor {
 	public static void monitorSQL(String statement, long runTime,
 			long finishTime, List parameter, int executeNum) {
 		if (log.isDebugEnabled()) {
-			log.debug(Thread.currentThread() + "Ö´ÐÐSQL :" + statement);
+			StringBuilder builder = new StringBuilder();
+			builder.append(Thread.currentThread() + "Ö´ÐÐSQL :" + statement);
+			if(parameter != null){
+				for(int i=0;i<parameter.size();i++){
+					builder.append(" ").append("P" + i+"{" + parameter.get(i)+"}");
+				}
+			}			
+			log.debug(builder.toString());
 		}
 	}
 
