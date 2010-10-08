@@ -1,5 +1,6 @@
 package com.taobao.pamirs.transaction;
 
+import java.lang.reflect.Field;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -22,6 +23,9 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
+
 
 /**
  * 
@@ -32,9 +36,12 @@ import org.apache.commons.logging.LogFactory;
  * 
  */
 public class TBConnection implements java.sql.Connection {
+	public static String DB_TYPE_ORACLE ="oracle";
+	public static String DB_TYPE_MYSQL ="mysql";
+	
 	private static transient Log	log					= LogFactory.getLog(TBConnection.class);
-	private static String			S_SESSION_QUERY		= "SELECT to_number(substr(dbms_session.unique_session_id,1,4),'xxxx') FROM dual";
-	private String					validateSql4Mysql	= "SELECT 1+1";
+	private static String			S_SESSION_QUERY		= "SELECT dbms_session.unique_session_id FROM dual";
+	private String					validateSql	= "SELECT 1 from dual";
 	private static boolean			isSetConnectionInfo	= true;
 	private String					dbType				= "";
 	private Connection				m_conn;
@@ -47,7 +54,7 @@ public class TBConnection implements java.sql.Connection {
 	private String					dataSourceName;
 	private List<Statement>			m_statements		= new ArrayList<Statement>();
 
-	private TBConnection(String aDataSourceName, Connection conn, TBTransactionImpl session, int aQueryTimeOut)
+	private TBConnection(String aDataSourceName, Connection conn, TBTransactionImpl session, int aQueryTimeOut,String aDbType)
 			throws java.sql.SQLException {
 
 		this.m_conn = conn;
@@ -57,24 +64,22 @@ public class TBConnection implements java.sql.Connection {
 		this.m_queryTimeOut = aQueryTimeOut;
 		this.m_openTime = System.currentTimeMillis();
 		this.m_addr = new Exception();
-		this.dbType = this.m_conn.getMetaData().getDatabaseProductName();
+		this.dbType = this.getDataBaseType(this.m_conn,aDbType);
 		if (isSetConnectionInfo == true) {
 			this.sessionId = this.queryDBSessionID();
-			// 设置当前连接的服务器信息 和 链接发生的地址信息
-			setDBMSConnectionInfo();
 		} else {
 			this.sessionId = "没有打开连接状态检查开关";
 		}
 	}
 
 	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, TBTransactionImpl session,
-			int aQueryTimeOut) throws java.sql.SQLException {
-		return new TBConnection(aDataSourceName, conn, session, aQueryTimeOut);
+			int aQueryTimeOut,String aDbType) throws java.sql.SQLException {
+		return new TBConnection(aDataSourceName, conn, session, aQueryTimeOut,aDbType);
 	}
 
-	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, int aQueryTimeOut)
+	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, int aQueryTimeOut,String aDbType)
 			throws java.sql.SQLException {
-		return new TBConnection(aDataSourceName, conn, null, aQueryTimeOut);
+		return new TBConnection(aDataSourceName, conn, null, aQueryTimeOut,aDbType);
 	}
 
 	public String toString() {
@@ -149,22 +154,11 @@ public class TBConnection implements java.sql.Connection {
 	 * @throws Exception
 	 */
 	public void judgeConnAvailable() throws Exception {
-
-		// 如果是oracle数据库，则设置其连接session的信息，否则
-		if ("oracle".equals(dbType.toLowerCase())) {
-			String sql = "call DBMS_APPLICATION_INFO.SET_MODULE (?,?)";
-			PreparedStatement stmt = this.m_conn.prepareStatement(sql);
-			stmt.setString(1, "");
-			stmt.setString(2, "");
-			stmt.execute();
-			stmt.close();
-		} else if ("mysql".equals(dbType.toLowerCase())) {
+		if ("oracle".equals(dbType.toLowerCase()) || "mysql".equals(dbType.toLowerCase())) {
 			// 注意，这儿不能用重载后的方法，否则会把hasDDLOperator改变为true，
-			PreparedStatement stmt = this.m_conn.prepareStatement(validateSql4Mysql);
-
+			PreparedStatement stmt = this.m_conn.prepareStatement(validateSql);
 			stmt.execute();
 			stmt.close();
-
 		} else {
 			throw new Exception("请提供其它数据库的校验方式");
 		}
@@ -255,9 +249,6 @@ public class TBConnection implements java.sql.Connection {
 	public void realCommit() throws SQLException {
 		if (this.m_session == null && this.hasDDLOperator == true) {
 			throw new SQLException("没有加入事务的连接不能执行数据修改操作，请在bean上增加注解@TBTransactionAnnotation或者实现接口TBTransactionHint");
-		}
-		if (m_conn.getAutoCommit()) {
-			m_conn.setAutoCommit(false);
 		}
 		m_conn.commit();
 		if (log.isDebugEnabled()) {
@@ -460,7 +451,7 @@ public class TBConnection implements java.sql.Connection {
 		} catch (Throwable ex) {
 			result = "如果连接已经断开，需要重新连接";
 		}
-		return result;
+		return Long.parseLong(result.substring(0,4),16) +"";
 	}
 
 	public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
@@ -516,5 +507,17 @@ public class TBConnection implements java.sql.Connection {
 	public <T> T unwrap(Class<T> iface) throws SQLException {
 		return this.m_conn.unwrap(iface);
 	}
-
+	public String getDBType(){
+		return this.dbType;
+	}
+	private String getDataBaseType(Connection conn,String dbType) throws SQLException {
+		String dataBaseType = conn.getMetaData().getDatabaseProductName();
+		if ("tddl".equalsIgnoreCase(dataBaseType)) {
+			if(dbType == null){
+				throw new SQLException("请配置数据源 TBDataSourceImpl 的数据类型dbType:oracle or mysql");
+			}
+			dataBaseType = dbType;
+		}
+		return dataBaseType;
+	}
 }
