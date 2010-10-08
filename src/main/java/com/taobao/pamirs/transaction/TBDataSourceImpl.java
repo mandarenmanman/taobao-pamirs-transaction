@@ -21,6 +21,7 @@ import org.springframework.beans.factory.BeanNameAware;
 public class TBDataSourceImpl implements DataSource, BeanNameAware {
 	String dataSourceName;
 	DataSource dataSource;
+	String dbType;
 	public TBDataSourceImpl(){
 		
 	}
@@ -40,10 +41,16 @@ public class TBDataSourceImpl implements DataSource, BeanNameAware {
 		this.dataSourceName = dataSourceName;
 	}
 
+	public String getDbType() {
+		return dbType;
+	}
+	public void setDbType(String dbType) {
+		this.dbType = dbType;
+	}
 	public Connection getConnection() throws SQLException {
 		TBTransactionManagerImpl manager =((TBTransactionManagerImpl) TransactionManager
 				.getTransactionManager());
-		return manager.getConnection(this.dataSourceName,this.dataSource);
+		return manager.getConnection(this.dataSourceName,this.dataSource,this.dbType);
 	}
 
 	public Connection getConnection(String username, String password)

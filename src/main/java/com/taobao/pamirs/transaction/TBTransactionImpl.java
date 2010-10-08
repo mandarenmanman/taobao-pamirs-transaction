@@ -64,7 +64,7 @@ public class TBTransactionImpl {
 	 * @return
 	 * @throws java.sql.SQLException
 	 */
-	public Connection getConnection(String sourceName,DataSource ds)throws java.sql.SQLException{
+	public Connection getConnection(String sourceName,DataSource ds,String aDbType)throws java.sql.SQLException{
 		if(sourceName == null){
 			throw new SQLException("数据源名称不能为 null ");
 		}
@@ -74,9 +74,9 @@ public class TBTransactionImpl {
 				if (isCanGetConnectionOnNoStartTransaction == false) {
 					throw new SQLException("没有开始事务前不能获取数据库连接");
 				}
-				result = TBConnection.wrap(sourceName,ds.getConnection(), this.timeOut);
+				result = TBConnection.wrap(sourceName,ds.getConnection(), this.timeOut,aDbType);
 			} else {
-				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut);
+				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut,aDbType);
 				this.m_conn.put(sourceName, result);
 				//将连接设置为不能自动提交
 				if (result.getAutoCommit() == true) {
