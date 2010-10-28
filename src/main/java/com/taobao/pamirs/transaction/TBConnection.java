@@ -136,9 +136,8 @@ public class TBConnection implements java.sql.Connection {
 		StringBuffer sb = new StringBuffer();
 		StackTraceElement stack[] = e.getStackTrace();
 		for (int i = 0; i < stack.length; i++) {
-			if (stack[i].getClassName().indexOf("$jsp") >= 0 || stack[i].getClassName().indexOf(".dbconnmanager.") < 0
+			if (stack[i].getClassName().indexOf("$jsp") >= 0 || stack[i].getClassName().indexOf("com.taobao.pamirs.") < 0
 					&& stack[i].getClassName().indexOf("org.apache.") < 0
-					&& stack[i].getClassName().indexOf("com.ai.appframe2.bo.") < 0
 					&& stack[i].getClassName().indexOf("java.") < 0 && stack[i].getClassName().indexOf("javax.") < 0) {
 				String lineNumber = "ÐÐÊý";
 				sb.append(stack[i].getClassName() + "." + stack[i].getMethodName() + "() " + lineNumber + ":"
