@@ -36,6 +36,7 @@ public class TBTransactionImpl {
 	 * 标记事务是否只能回滚
 	 */
 	protected boolean m_onlyRollback = false;
+	protected Exception setRollbackOnlyAddr;
 
 	/**
 	 * 开始事务的地址
@@ -141,9 +142,7 @@ public class TBTransactionImpl {
 			throw new SQLException("不能提交未开始的事务");
 		}
 		if (this.m_onlyRollback == true) {
-	        if(log.isWarnEnabled()){
-				   log.warn("因为在是否提交时，发现事务已经是只能回滚，所以直接执行rollback操作");
-		        }
+		    log.error("因为在事务提交时，发现事务已经是只能回滚，所以直接执行rollback操作",setRollbackOnlyAddr);
 			this.rollback();//执行回滚操作
 			return;
 		}
@@ -209,6 +208,7 @@ public class TBTransactionImpl {
 			throw new SQLException("还没有开始事务，不能设置只能回滚的属性");
 		}
 		this.m_onlyRollback = true;
+		this.setRollbackOnlyAddr = new Exception("调用setRollbackOnly的地址");
 	}
 
 	public void setQueryTimeout(int aTimeOut){
