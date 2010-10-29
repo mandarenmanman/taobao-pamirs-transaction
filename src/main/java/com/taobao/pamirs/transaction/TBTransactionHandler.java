@@ -20,10 +20,8 @@ import org.springframework.beans.factory.BeanFactoryAware;
  */
 @SuppressWarnings("serial")
 public class TBTransactionHandler extends AbstractAutoProxyCreator implements BeanFactoryAware {
-	private static transient Log log = LogFactory
-			.getLog(TBTransactionHandler.class);
+	private static transient Log log = LogFactory.getLog(TBTransactionHandler.class);
 	
-	TransactionAdvisor[] asdvisors = new TransactionAdvisor[] { new TransactionAdvisor() };
 	
 	BeanFactory beanFactory;
 
@@ -37,15 +35,18 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 			if (log.isDebugEnabled()) {
 				log.debug("事务包裹" + beanClass + ":" + beanName);
 			}
-			return asdvisors;
+			return new TransactionAdvisor[]{new TransactionAdvisor(beanClass)};
 		}
 		return DO_NOT_PROXY;
 	}
 }
 
 class TransactionAdvisor implements Advisor {
-	Advice advice = new TransactionRoundAdvice();
-
+ 
+	TransactionRoundAdvice advice;
+	TransactionAdvisor(Class aBeanClass){
+		advice = new TransactionRoundAdvice(aBeanClass);
+	}
 	public Advice getAdvice() {
 		return advice;
 	}
@@ -58,14 +59,24 @@ class TransactionAdvisor implements Advisor {
 class TransactionRoundAdvice implements MethodInterceptor, Advice {
 	private static transient Log log = LogFactory
 			.getLog(TransactionRoundAdvice.class);
-
+    private Class beanClass;
+    TransactionRoundAdvice(Class aBeanClass){
+    	this.beanClass = aBeanClass;
+    }
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		TBTransactionType transactionType = getTBTransactionType(invocation.getMethod());
 		return invokeInner(invocation,transactionType);
 	}
-	public static TBTransactionType getTBTransactionType(Method method) {
-		TBTransactionTypeAnnotation transactionTypeAnn = method
-				.getAnnotation(TBTransactionTypeAnnotation.class);
+	
+		
+	public TBTransactionType getTBTransactionType(Method interfaceMethod) throws Exception {
+		//先看接口上是否定义了Annotation
+		TBTransactionTypeAnnotation transactionTypeAnn = interfaceMethod.getAnnotation(TBTransactionTypeAnnotation.class);
+		if(transactionTypeAnn == null){		
+			//从实际的实现类上获取事务Annotation
+			Method realMethod = this.beanClass.getDeclaredMethod(interfaceMethod.getName(),interfaceMethod.getParameterTypes());
+			transactionTypeAnn = realMethod.getAnnotation(TBTransactionTypeAnnotation.class);
+		}	
 		if (transactionTypeAnn != null) {
 			return transactionTypeAnn.value();
 		} else {
