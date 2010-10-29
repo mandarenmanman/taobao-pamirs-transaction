@@ -1,5 +1,6 @@
 package com.taobao.pamirs.transaction;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
@@ -48,5 +49,20 @@ public class TransactionManager{
 	public static Object executeMethod(MethodInvocation invocation,
 			TBTransactionType transactionType) throws Throwable {
 		return TransactionRoundAdvice.invokeInner(invocation, transactionType);
+	}
+    /**
+     * 用指定的事务方式来执行一个方法
+     * @param aMethod
+     * @param aRunObject
+     * @param aArguments
+     * @param transactionType
+     * @return
+     * @throws Throwable
+     */
+	public static Object executeMethod(Method aMethod, Object aRunObject,
+			Object[] aArguments, TBTransactionType transactionType)
+			throws Throwable {
+		return TransactionRoundAdvice.invokeInner(new TBMethodInvocation(
+				aMethod, aRunObject, aArguments), transactionType);
 	}
 }
