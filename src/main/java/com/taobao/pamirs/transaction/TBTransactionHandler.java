@@ -74,7 +74,7 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 		TBTransactionTypeAnnotation transactionTypeAnn = interfaceMethod.getAnnotation(TBTransactionTypeAnnotation.class);
 		if(transactionTypeAnn == null){		
 			//从实际的实现类上获取事务Annotation
-			Method realMethod = this.beanClass.getDeclaredMethod(interfaceMethod.getName(),interfaceMethod.getParameterTypes());
+			Method realMethod = this.beanClass.getMethod(interfaceMethod.getName(),interfaceMethod.getParameterTypes());
 			transactionTypeAnn = realMethod.getAnnotation(TBTransactionTypeAnnotation.class);
 		}	
 		if (transactionTypeAnn != null) {
