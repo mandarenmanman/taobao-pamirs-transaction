@@ -42,7 +42,7 @@ public class TBConnection implements java.sql.Connection {
 	private static transient Log	log					= LogFactory.getLog(TBConnection.class);
 	private static String			S_SESSION_QUERY		= "SELECT dbms_session.unique_session_id FROM dual";
 	private String					validateSql	= "SELECT 1 from dual";
-	private static boolean			isSetConnectionInfo	= true;
+	protected static boolean			isSetConnectionInfo	= false;
 	private String					dbType				= "";
 	private Connection				m_conn;
 	private String					sessionId;
