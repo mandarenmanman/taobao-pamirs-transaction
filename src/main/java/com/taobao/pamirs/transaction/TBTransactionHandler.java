@@ -22,9 +22,15 @@ import org.springframework.beans.factory.BeanFactoryAware;
 public class TBTransactionHandler extends AbstractAutoProxyCreator implements BeanFactoryAware {
 	private static transient Log log = LogFactory.getLog(TBTransactionHandler.class);
 	
-	
 	BeanFactory beanFactory;
 
+	/**
+	 * 设置是否在TBConnection中获取SessionId
+	 * @param isSetConnectionInfo
+	 */
+	public void setSetConnectionInfo(boolean isSetConnectionInfo) {
+		 TBConnection.isSetConnectionInfo = isSetConnectionInfo;
+	}
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 	}
