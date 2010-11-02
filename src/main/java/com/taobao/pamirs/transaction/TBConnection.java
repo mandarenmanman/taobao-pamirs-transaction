@@ -1,6 +1,5 @@
 package com.taobao.pamirs.transaction;
 
-import java.lang.reflect.Field;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -23,8 +22,6 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
 
 
 /**
