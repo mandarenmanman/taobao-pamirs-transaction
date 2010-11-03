@@ -1,8 +1,36 @@
 <?xml version="1.0" encoding="GB2312"?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans default-autowire="byName">
+
  	<bean id="testBean" class="com.taobao.pamirs.transaction.test.TestBean"/> 	
  	<bean id="tbTransactionHandler" class="com.taobao.pamirs.transaction.TBTransactionHandler"/>
+ 	<bean id="tbSysdateManager" class="com.taobao.pamirs.transaction.TBSysdateManager">
+ 		<property name="dataSource">
+			<ref bean="hj"/>
+		</property>	
+ 	</bean>
+    <bean id="sqlCheckMonitor" class="com.taobao.pamirs.transaction.SqlCheckMonitor">
+    	<property name="dataSource">
+			<ref bean="hj"/>
+		</property>
+    	<property name="productName">
+			<value>汇金</value>
+		</property>
+    	<property name="projectName">
+			<value>收费</value>
+		</property>
+    	<property name="runMode">
+			<value>生产</value>
+		</property>
+	</bean>
+	
+ 	<bean id="sqlMonitor" class="com.taobao.pamirs.transaction.SqlMonitor">
+		<property name="monitors">
+		<list>
+            <ref bean="sqlCheckMonitor"/>
+            </list>
+        </property>
+    </bean>    
  	<bean id="transactionManager" class="com.taobao.pamirs.transaction.TransactionManager">
 	<property name="dataSourceMap">
             <map>
@@ -31,13 +59,13 @@
 			<value>oracle.jdbc.driver.OracleDriver</value>
 		</property>
 		<property name="url">
-			<value>jdbc:oracle:thin:@192.168.213.201:1521:XE</value>
+			<value>jdbc:oracle:thin:@localhost:1521:oracle9i</value>
 		</property>
 		<property name="username">
-			<value>pamirs</value>
+			<value>hj</value>
 		</property>
 		<property name="password">
-			<value>pamirs</value>
+			<value>hj</value>
 		</property>
 	</bean>
 	<bean id="jzBase" class="org.apache.commons.dbcp.BasicDataSource"
@@ -46,13 +74,13 @@
 			<value>oracle.jdbc.driver.OracleDriver</value>
 		</property>
 		<property name="url">
-			<value>jdbc:oracle:thin:@192.168.213.201:1521:XE</value>
+			<value>jdbc:oracle:thin:@localhost:1521:oracle9i</value>
 		</property>
 		<property name="username">
-			<value>pamirs</value>
+			<value>jz</value>
 		</property>
 		<property name="password">
-			<value>pamirs</value>
+			<value>jz</value>
 		</property>
 	</bean>	
  </beans>
