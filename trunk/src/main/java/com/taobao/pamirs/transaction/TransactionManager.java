@@ -65,4 +65,41 @@ public class TransactionManager{
 		return TransactionRoundAdvice.invokeInner(new TBMethodInvocation(
 				aMethod, aRunObject, aArguments), transactionType);
 	}
+
+	/**
+	 * 根据连接获取数据库类型
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */
+	public static String getDataBaseType(Connection conn) throws SQLException {
+		String result;
+		if (conn instanceof TBConnection) {
+			result = ((TBConnection) conn).getDBType();
+		} else {
+			result = conn.getMetaData().getDatabaseProductName();
+			if ("oracle".equalsIgnoreCase(result) == false
+					&& "mysql".equalsIgnoreCase(result) == false) {
+				throw new SQLException("不支持的数据库类型：" + result);
+			}
+		}
+		return result;
+	}
+	/**
+	 * 获取不同数据库获取系统时间的方法字符串
+	 * 
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */
+	public static String getDataBaseSysdateString(Connection conn) throws Exception {
+		String type = getDataBaseType(conn);
+		if ("oracle".equalsIgnoreCase(type)) {
+			return "sysdate";
+		} else if ("mysql".equalsIgnoreCase(type)) {
+			return "now()";
+		} else {
+			throw new Exception("不支持的数据库类型：" + type);
+		}
+	}
 }
