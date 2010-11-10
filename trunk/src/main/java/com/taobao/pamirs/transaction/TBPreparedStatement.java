@@ -42,11 +42,11 @@ public class TBPreparedStatement extends TBStatement implements
 
 	public ResultSet executeQuery() throws SQLException {
 		try {
-			long startTime = System.currentTimeMillis();
+			long startTime = System.nanoTime();
 			ResultSet result = ((PreparedStatement) this.m_statement)
 					.executeQuery();
 			SqlMonitor.monitorSQL(this.m_sql, startTime, System
-					.currentTimeMillis(), this.m_parameters, -1);
+					.nanoTime(), this.m_parameters, -1);
 			return result;
 		} catch (SQLException e) {
 			dealWithQueryTimeOutException(e, m_sql);
@@ -56,10 +56,10 @@ public class TBPreparedStatement extends TBStatement implements
 
 	public int executeUpdate() throws SQLException {
 		try {
-			long startTime = System.currentTimeMillis();
+			long startTime = System.nanoTime();
 			int result = ((PreparedStatement) this.m_statement).executeUpdate();
 			SqlMonitor.monitorSQL(this.m_sql, startTime, System
-					.currentTimeMillis(), this.m_parameters, -1);
+					.nanoTime(), this.m_parameters, -1);
 			return result;
 		} catch (SQLException e) {
 			dealWithQueryTimeOutException(e, m_sql);
@@ -199,10 +199,10 @@ public class TBPreparedStatement extends TBStatement implements
 
 	public boolean execute() throws SQLException {
 		try {
-			long startTime = System.currentTimeMillis();
+			long startTime = System.nanoTime();
 			boolean result = ((PreparedStatement) this.m_statement).execute();
 			SqlMonitor.monitorSQL(this.m_sql, startTime, System
-					.currentTimeMillis(), this.m_parameters, -1);
+					.nanoTime(), this.m_parameters, -1);
 			return result;
 		} catch (SQLException e) {
 			dealWithQueryTimeOutException(e, m_sql);

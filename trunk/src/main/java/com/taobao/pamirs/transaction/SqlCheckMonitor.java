@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
@@ -21,7 +20,7 @@ import org.springframework.beans.factory.InitializingBean;
  * @author xuannan
  * 
  */
-public class SqlCheckMonitor implements IMonitor,InitializingBean{
+public class SqlCheckMonitor implements InitializingBean{
 	private static transient Log log = LogFactory.getLog(SqlCheckMonitor.class);
 	public static String RUNMODE_WRITE ="开发";
 	public static String RUNMODE_CHECK ="日常";
@@ -63,8 +62,8 @@ public class SqlCheckMonitor implements IMonitor,InitializingBean{
 			}
 	}
 	
-	public void monitor(String sqlText, long runTime,
-			long finishTime, List<Object> parameter, int executeNum){
+	public void monitor(String sqlText,String type, long runTime,
+			long finishTime, Object[] parameter, int executeNum){
 		if(RUNMODE_WRITE.equals(this.runMode)){
 			writeRuningSql(sqlText);
 		}else if(RUNMODE_CHECK.equals(this.runMode)){
@@ -172,11 +171,6 @@ public class SqlCheckMonitor implements IMonitor,InitializingBean{
 
 	public void setRunMode(String runMode) {
 		this.runMode = runMode;
-	}
-
-	public void monitor(String statement, long runTime, long finishTime,
-			Object[] parameter, int executeNum) {
-		throw new RuntimeException("没有实现的方法");
 	}
 
 	
