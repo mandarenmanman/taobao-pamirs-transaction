@@ -5,6 +5,7 @@ create table PAMIRS_SQL_CHECK
   PRODUCT_NAME    VARCHAR2(100) not null,
   PROJECT_NAME    VARCHAR2(100) not null,
   SQL_TEXT        VARCHAR2(4000) not null,
+  OWNER			  VARCHAR2(30),	
   CHECK_OK        NUMBER not null,
   CHECK_TIME      DATE,
   GMT_CREATE      DATE not null,
