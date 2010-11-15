@@ -1,6 +1,7 @@
 package com.taobao.pamirs.transaction;
 
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -9,11 +10,25 @@ import org.apache.commons.logging.LogFactory;
 
 public class SqlMonitor {
 	private static transient Log log = LogFactory.getLog(SqlMonitor.class);
+	private static Method monitorThreadLocalPeepCaller;
 	private static Object[] monitorObjects;
 	private static Method[] methods;
 
+	public static String peepParent() {
+		if (monitorThreadLocalPeepCaller != null) {
+			try {
+				return (String) monitorThreadLocalPeepCaller.invoke(null,
+						new Object[0]);
+			} catch (Exception e) {
+                return null;
+			}
+		} else {
+			return null;
+		}
+	}
 	public static void monitorSQL(String statement, long runTime,
 			long finishTime, List<Object> parameter, int executeNum){
+		String  parent = peepParent();
 		if (log.isDebugEnabled()) {
 			StringBuilder builder = new StringBuilder();
 			builder.append(Thread.currentThread() + "执行SQL " + ((finishTime - runTime)/1000) +" 毫秒 :" + statement);
@@ -30,10 +45,10 @@ public class SqlMonitor {
 			for (int i =0;i<monitorObjects.length;i++ ) {
 				if(parameter != null){
 				methods[i].invoke(monitorObjects[i],new Object[]{statement,"SQL", runTime, finishTime, parameter.toArray(),
-						executeNum});
+						executeNum,parent});
 				}else{
 					methods[i].invoke(monitorObjects[i],new Object[]{statement,"SQL", runTime, finishTime,new Object[0],
-							executeNum});					
+							executeNum,parent});					
 				}
 			}
 			}catch(Exception e){
@@ -51,7 +66,13 @@ public class SqlMonitor {
 					.getMethod(
 							"monitor",
 							new Class[] { String.class,String.class,long.class, long.class,
-									Object[].class, int.class });
+									Object[].class, int.class,String.class });
+		}
+		try{
+			Class monitorThreadLocal =Class.forName("com.taobao.pamirs.stat.MonitorThreadLocal");
+			monitorThreadLocalPeepCaller =monitorThreadLocal.getDeclaredMethod("peepCaller",new Class[0]);
+		}catch(Exception e){
+			log.warn(e.getMessage() +" 不能进行调用堆栈相关的细化分析");
 		}
 	}
 }
