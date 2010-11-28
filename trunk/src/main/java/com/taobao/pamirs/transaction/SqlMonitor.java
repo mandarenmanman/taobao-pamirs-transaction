@@ -1,7 +1,6 @@
 package com.taobao.pamirs.transaction;
 
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -31,7 +30,7 @@ public class SqlMonitor {
 		String  parent = peepParent();
 		if (log.isDebugEnabled()) {
 			StringBuilder builder = new StringBuilder();
-			builder.append(Thread.currentThread() + "÷¥––SQL " + ((finishTime - runTime)/1000) +" ∫¡√Î :" + statement);
+			builder.append(Thread.currentThread() + "÷¥––SQL " + ((finishTime - runTime)/1000) +" Œ¢√Î :" + statement);
 			if (parameter != null) {
 				for (int i = 0; i < parameter.size(); i++) {
 					builder.append(" ").append(
