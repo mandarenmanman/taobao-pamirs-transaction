@@ -149,7 +149,7 @@ public class SqlCheckMonitor implements InitializingBean{
 			statement.close();
 			conn.commit();
 		} catch (Throwable e) {
-			log.error("可能别的服务器已经提交了相同的SQL语句:" + sqlText);
+			//可能别的服务器已经提交了相同的SQL语句
 			conn.rollback();
 		} finally {
 			if (conn != null) {
