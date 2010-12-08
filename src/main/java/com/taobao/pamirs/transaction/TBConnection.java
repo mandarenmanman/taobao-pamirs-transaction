@@ -150,14 +150,15 @@ public class TBConnection implements java.sql.Connection {
 	 * @throws Exception
 	 */
 	public void judgeConnAvailable() throws Exception {
-		if ("oracle".equals(dbType.toLowerCase()) || "mysql".equals(dbType.toLowerCase())) {
-			// 注意，这儿不能用重载后的方法，否则会把hasDDLOperator改变为true，
-			PreparedStatement stmt = this.m_conn.prepareStatement(validateSql);
-			stmt.execute();
-			stmt.close();
-		} else {
-			throw new Exception("请提供其它数据库的校验方式");
-		}
+		//影响数据效率，去除校验
+//		if ("oracle".equals(dbType.toLowerCase()) || "mysql".equals(dbType.toLowerCase())) {
+//			// 注意，这儿不能用重载后的方法，否则会把hasDDLOperator改变为true，
+//			PreparedStatement stmt = this.m_conn.prepareStatement(validateSql);
+//			stmt.execute();
+//			stmt.close();
+//		} else {
+//			throw new Exception("请提供其它数据库的校验方式");
+//		}
 	}
 
 	/**
