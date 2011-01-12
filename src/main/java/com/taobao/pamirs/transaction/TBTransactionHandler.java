@@ -1,6 +1,7 @@
 package com.taobao.pamirs.transaction;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -22,6 +23,11 @@ import org.springframework.beans.factory.BeanFactoryAware;
 public class TBTransactionHandler extends AbstractAutoProxyCreator implements BeanFactoryAware {
 	private static transient Log log = LogFactory.getLog(TBTransactionHandler.class);
 	
+	/**
+	 * 需要进行事务控制的bean名称
+	 */
+	private List<String> beanList;
+	
 	BeanFactory beanFactory;
 
 	/**
@@ -34,10 +40,16 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 	}
+	
+	public void setBeanList(List<String> beanList) {
+		this.beanList = beanList;
+	}
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object[] getAdvicesAndAdvisorsForBean(Class beanClass,
 			String beanName, TargetSource targetSource) throws BeansException {
-        if (beanClass.isAnnotationPresent(TBTransactionAnnotation.class) || TBTransactionHint.class.isAssignableFrom(beanClass)) {
+        if (beanClass.isAnnotationPresent(TBTransactionAnnotation.class)
+        		|| TBTransactionHint.class.isAssignableFrom(beanClass)
+        		|| (this.beanList != null && this.beanList.contains(beanName))) {
 			if (log.isDebugEnabled()) {
 				log.debug("事务包裹" + beanClass + ":" + beanName);
 			}
@@ -45,6 +57,7 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 		}
 		return DO_NOT_PROXY;
 	}
+	
 }
 
 class TransactionAdvisor implements Advisor {
