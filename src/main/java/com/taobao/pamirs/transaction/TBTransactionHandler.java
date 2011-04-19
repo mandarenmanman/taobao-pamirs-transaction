@@ -29,7 +29,9 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 	private List<String> beanList;
 	
 	BeanFactory beanFactory;
-
+	public TBTransactionHandler(){
+		this.setProxyTargetClass(true);
+	}
 	/**
 	 * 设置是否在TBConnection中获取SessionId
 	 * @param isSetConnectionInfo
