@@ -14,13 +14,14 @@ import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.PriorityOrdered;
 /**
  * 事务处理类
  * @author xuannan
  *
  */
 @SuppressWarnings("serial")
-public class TBTransactionHandler extends AbstractAutoProxyCreator implements BeanFactoryAware {
+public class TBTransactionHandler extends AbstractAutoProxyCreator implements BeanFactoryAware,PriorityOrdered {
 	private static transient Log log = LogFactory.getLog(TBTransactionHandler.class);
 	
 	/**
@@ -30,6 +31,7 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 	
 	BeanFactory beanFactory;
 	public TBTransactionHandler(){
+		this.setOrder(HIGHEST_PRECEDENCE);
 		this.setProxyTargetClass(true);
 	}
 	/**
