@@ -67,7 +67,7 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 class TransactionAdvisor implements Advisor {
  
 	TransactionRoundAdvice advice;
-	TransactionAdvisor(Class aBeanClass){
+	TransactionAdvisor(Class<?> aBeanClass){
 		advice = new TransactionRoundAdvice(aBeanClass);
 	}
 	public Advice getAdvice() {
@@ -82,8 +82,8 @@ class TransactionAdvisor implements Advisor {
 class TransactionRoundAdvice implements MethodInterceptor, Advice {
 	private static transient Log log = LogFactory
 			.getLog(TransactionRoundAdvice.class);
-    private Class beanClass;
-    TransactionRoundAdvice(Class aBeanClass){
+    private Class<?> beanClass;
+    TransactionRoundAdvice(Class<?> aBeanClass){
     	this.beanClass = aBeanClass;
     }
 	public Object invoke(MethodInvocation invocation) throws Throwable {
