@@ -68,7 +68,7 @@ public class SqlMonitor {
 									Object[].class, int.class,String.class });
 		}
 		try{
-			Class monitorThreadLocal =Class.forName("com.taobao.pamirs.stat.MonitorThreadLocal");
+			Class<?> monitorThreadLocal =Class.forName("com.taobao.pamirs.stat.MonitorThreadLocal");
 			monitorThreadLocalPeepCaller =monitorThreadLocal.getDeclaredMethod("peepCaller",new Class[0]);
 		}catch(Exception e){
 			log.warn(e.getMessage() +" 不能进行调用堆栈相关的细化分析");
