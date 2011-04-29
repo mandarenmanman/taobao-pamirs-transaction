@@ -1,6 +1,7 @@
 package com.taobao.pamirs.transaction;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
@@ -21,7 +22,7 @@ import org.springframework.core.PriorityOrdered;
  *
  */
 @SuppressWarnings("serial")
-public class TBTransactionHandler extends AbstractAutoProxyCreator implements BeanFactoryAware,PriorityOrdered {
+public class TBTransactionHandler extends AbstractAutoProxyCreator implements BeanFactoryAware ,PriorityOrdered {
 	private static transient Log log = LogFactory.getLog(TBTransactionHandler.class);
 	
 	/**
@@ -30,10 +31,7 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 	private List<String> beanList;
 	
 	BeanFactory beanFactory;
-	public TBTransactionHandler(){
-		this.setOrder(HIGHEST_PRECEDENCE);
-		this.setProxyTargetClass(true);
-	}
+
 	/**
 	 * 设置是否在TBConnection中获取SessionId
 	 * @param isSetConnectionInfo
@@ -48,6 +46,12 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 	public void setBeanList(List<String> beanList) {
 		this.beanList = beanList;
 	}
+	
+	public TBTransactionHandler(){
+		//以最高优先级加载该代理
+		this.setOrder(HIGHEST_PRECEDENCE);
+	}
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object[] getAdvicesAndAdvisorsForBean(Class beanClass,
 			String beanName, TargetSource targetSource) throws BeansException {
@@ -57,9 +61,28 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 			if (log.isDebugEnabled()) {
 				log.debug("事务包裹" + beanClass + ":" + beanName);
 			}
+			/**
+			 * 对需要被代理的类进行判断：如果被代理类的访问修饰符是final，则是使用PROXY来代理
+			 * 如果被代理的类已经是PROXY代理，其访问修饰符也是final
+			 * 如果存在被代理类有内部类，该类为final的，该被代理类仍可以使用CGLIB代理
+			 */
+			if(targetBeanIsFinal(beanClass)){
+				this.setProxyTargetClass(false);//PROXY
+			}else{
+				this.setProxyTargetClass(true);//CGLIB
+			}
 			return new TransactionAdvisor[]{new TransactionAdvisor(beanClass)};
 		}
 		return DO_NOT_PROXY;
+	}
+	
+	private boolean targetBeanIsFinal(Class clazz){
+		String inMods = Modifier.toString(clazz.getModifiers());
+    	if(inMods.contains("final")){
+    		return true;
+    	}else{
+    		return false;
+    	}
 	}
 	
 }
@@ -67,7 +90,7 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 class TransactionAdvisor implements Advisor {
  
 	TransactionRoundAdvice advice;
-	TransactionAdvisor(Class<?> aBeanClass){
+	TransactionAdvisor(Class aBeanClass){
 		advice = new TransactionRoundAdvice(aBeanClass);
 	}
 	public Advice getAdvice() {
@@ -82,8 +105,8 @@ class TransactionAdvisor implements Advisor {
 class TransactionRoundAdvice implements MethodInterceptor, Advice {
 	private static transient Log log = LogFactory
 			.getLog(TransactionRoundAdvice.class);
-    private Class<?> beanClass;
-    TransactionRoundAdvice(Class<?> aBeanClass){
+    private Class beanClass; 
+    TransactionRoundAdvice(Class aBeanClass){
     	this.beanClass = aBeanClass;
     }
 	public Object invoke(MethodInvocation invocation) throws Throwable {
