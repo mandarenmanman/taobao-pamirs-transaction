@@ -12,6 +12,7 @@ public class SqlMonitor {
 	private static Method monitorThreadLocalPeepCaller;
 	private static Object[] monitorObjects;
 	private static Method[] methods;
+	private static boolean isFirstOutputErrorMessage = true;
 
 	public static String peepParent() {
 		if (monitorThreadLocalPeepCaller != null) {
@@ -27,31 +28,37 @@ public class SqlMonitor {
 	}
 	public static void monitorSQL(String statement, long runTime,
 			long finishTime, List<Object> parameter, int executeNum){
-		String  parent = peepParent();
-		if (log.isDebugEnabled()) {
-			StringBuilder builder = new StringBuilder();
-			builder.append(Thread.currentThread() + "执行SQL " + ((finishTime - runTime)/1000) +" 微秒 :" + statement);
-			if (parameter != null) {
-				for (int i = 0; i < parameter.size(); i++) {
-					builder.append(" ").append(
-							"P" + (i + 1) + "{" + parameter.get(i) + "}");
+		try {
+			String parent = peepParent();
+			if (log.isDebugEnabled()) {
+				StringBuilder builder = new StringBuilder();
+				builder.append(Thread.currentThread() + "执行SQL "
+						+ ((finishTime - runTime) / 1000) + " 微秒 :" + statement);
+				if (parameter != null) {
+					for (int i = 0; i < parameter.size(); i++) {
+						builder.append(" ").append(
+								"P" + (i + 1) + "{" + parameter.get(i) + "}");
+					}
+				}
+				log.debug(builder.toString());
+			}
+			if (monitorObjects != null) {
+				for (int i = 0; i < monitorObjects.length; i++) {
+					if (parameter != null) {
+						methods[i].invoke(monitorObjects[i], new Object[] {
+								statement, "SQL", runTime, finishTime,
+								parameter.toArray(), executeNum, parent });
+					} else {
+						methods[i].invoke(monitorObjects[i], new Object[] {
+								statement, "SQL", runTime, finishTime,
+								new Object[0], executeNum, parent });
+					}
 				}
 			}
-			log.debug(builder.toString());
-		}
-		if (monitorObjects != null) {
-			try{
-			for (int i =0;i<monitorObjects.length;i++ ) {
-				if(parameter != null){
-				methods[i].invoke(monitorObjects[i],new Object[]{statement,"SQL", runTime, finishTime, parameter.toArray(),
-						executeNum,parent});
-				}else{
-					methods[i].invoke(monitorObjects[i],new Object[]{statement,"SQL", runTime, finishTime,new Object[0],
-							executeNum,parent});					
-				}
-			}
-			}catch(Exception e){
-				throw new RuntimeException(e);
+		} catch (Throwable e) {
+			if (isFirstOutputErrorMessage == true) {
+				log.error("日志信息输出失败" + e);
+				isFirstOutputErrorMessage = false;
 			}
 		}
 	}
@@ -71,7 +78,7 @@ public class SqlMonitor {
 			Class<?> monitorThreadLocal =Class.forName("com.taobao.pamirs.stat.MonitorThreadLocal");
 			monitorThreadLocalPeepCaller =monitorThreadLocal.getDeclaredMethod("peepCaller",new Class[0]);
 		}catch(Exception e){
-			log.warn(e.getMessage() +" 不能进行调用堆栈相关的细化分析");
+			log.error(e.getMessage() +" 不能进行调用堆栈相关的细化分析");
 		}
 	}
 }
