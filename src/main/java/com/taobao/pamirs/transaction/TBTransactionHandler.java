@@ -1,5 +1,6 @@
 package com.taobao.pamirs.transaction;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -52,10 +53,10 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 		this.setOrder(HIGHEST_PRECEDENCE);
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"rawtypes" })
 	protected Object[] getAdvicesAndAdvisorsForBean(Class beanClass,
 			String beanName, TargetSource targetSource) throws BeansException {
-        if (beanClass.isAnnotationPresent(TBTransactionAnnotation.class)
+        if (isAnnotationPresent(beanClass,TBTransactionAnnotation.class)
         		|| TBTransactionHint.class.isAssignableFrom(beanClass)
         		|| (this.beanList != null && this.beanList.contains(beanName))) {
 			if (log.isDebugEnabled()) {
@@ -75,8 +76,21 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 		}
 		return DO_NOT_PROXY;
 	}
-	
-	private boolean targetBeanIsFinal(Class clazz){
+	public static boolean isAnnotationPresent(Class<?> aClass,Class<? extends Annotation> annotationClass){
+		while (aClass != null) {
+			if (aClass.isAnnotationPresent(annotationClass)) {
+				return true;
+			}
+			for (Class<?> interfaceClass : aClass.getInterfaces()) {
+				if (interfaceClass.isAnnotationPresent(annotationClass)) {
+					return true;
+				}
+			}
+			aClass = aClass.getSuperclass();
+		}
+		return false;
+	}	
+	private boolean targetBeanIsFinal(Class<?> clazz){
 		String inMods = Modifier.toString(clazz.getModifiers());
     	if(inMods.contains("final")){
     		return true;
@@ -90,7 +104,7 @@ public class TBTransactionHandler extends AbstractAutoProxyCreator implements Be
 class TransactionAdvisor implements Advisor {
  
 	TransactionRoundAdvice advice;
-	TransactionAdvisor(Class aBeanClass){
+	TransactionAdvisor(Class<?> aBeanClass){
 		advice = new TransactionRoundAdvice(aBeanClass);
 	}
 	public Advice getAdvice() {
@@ -105,8 +119,8 @@ class TransactionAdvisor implements Advisor {
 class TransactionRoundAdvice implements MethodInterceptor, Advice {
 	private static transient Log log = LogFactory
 			.getLog(TransactionRoundAdvice.class);
-    private Class beanClass; 
-    TransactionRoundAdvice(Class aBeanClass){
+    private Class<?> beanClass; 
+    TransactionRoundAdvice(Class<?> aBeanClass){
     	this.beanClass = aBeanClass;
     }
 	public Object invoke(MethodInvocation invocation) throws Throwable {
