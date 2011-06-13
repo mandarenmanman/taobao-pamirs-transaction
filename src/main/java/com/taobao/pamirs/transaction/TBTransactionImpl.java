@@ -142,7 +142,9 @@ public class TBTransactionImpl {
 			throw new SQLException("不能提交未开始的事务");
 		}
 		if (this.m_onlyRollback == true) {
-		    log.warn("因为在事务提交时，发现事务已经是只能回滚，所以直接执行rollback操作",setRollbackOnlyAddr);
+			if(log.isDebugEnabled()){
+		        log.debug("因为在事务提交时，发现事务已经是只能回滚，所以直接执行rollback操作",setRollbackOnlyAddr);
+			}
 			this.rollback();//执行回滚操作
 			return;
 		}
