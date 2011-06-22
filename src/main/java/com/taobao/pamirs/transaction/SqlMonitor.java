@@ -9,27 +9,12 @@ import org.apache.commons.logging.LogFactory;
 
 public class SqlMonitor {
 	private static transient Log log = LogFactory.getLog(SqlMonitor.class);
-	private static Method monitorThreadLocalPeepCaller;
 	private static Object[] monitorObjects;
 	private static Method[] methods;
 	private static boolean isFirstOutputErrorMessage = true;
-
-	public static String peepParent() {
-		if (monitorThreadLocalPeepCaller != null) {
-			try {
-				return (String) monitorThreadLocalPeepCaller.invoke(null,
-						new Object[0]);
-			} catch (Exception e) {
-                return null;
-			}
-		} else {
-			return null;
-		}
-	}
 	public static void monitorSQL(String statement, long runTime,
 			long finishTime, List<Object> parameter, int executeNum){
 		try {
-			String parent = peepParent();
 			if (log.isDebugEnabled()) {
 				StringBuilder builder = new StringBuilder();
 				builder.append(Thread.currentThread() + "执行SQL "
@@ -47,11 +32,11 @@ public class SqlMonitor {
 					if (parameter != null) {
 						methods[i].invoke(monitorObjects[i], new Object[] {
 								statement, "SQL", runTime, finishTime,
-								parameter.toArray(),null,null, executeNum, parent });
+								parameter.toArray(),null,null, executeNum, null });
 					} else {
 						methods[i].invoke(monitorObjects[i], new Object[] {
 								statement, "SQL", runTime, finishTime,
-								new Object[0],null,null, executeNum, parent });
+								new Object[0],null,null, executeNum, null });
 					}
 				}
 			}
@@ -73,12 +58,6 @@ public class SqlMonitor {
 							"monitorAfter",
 							new Class[] { String.class,String.class,long.class, long.class,
 									Object[].class,Object.class,Throwable.class,int.class,String.class });
-		}
-		try{
-			Class<?> monitorThreadLocal =Class.forName("com.taobao.pamirs.stat.MonitorThreadLocal");
-			monitorThreadLocalPeepCaller =monitorThreadLocal.getDeclaredMethod("peepCaller",new Class[0]);
-		}catch(Exception e){
-			log.error(e.getMessage() +" 不能进行调用堆栈相关的细化分析");
 		}
 	}
 }
