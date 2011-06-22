@@ -47,11 +47,11 @@ public class SqlMonitor {
 					if (parameter != null) {
 						methods[i].invoke(monitorObjects[i], new Object[] {
 								statement, "SQL", runTime, finishTime,
-								parameter.toArray(), executeNum, parent });
+								parameter.toArray(),null,null, executeNum, parent });
 					} else {
 						methods[i].invoke(monitorObjects[i], new Object[] {
 								statement, "SQL", runTime, finishTime,
-								new Object[0], executeNum, parent });
+								new Object[0],null,null, executeNum, parent });
 					}
 				}
 			}
@@ -70,9 +70,9 @@ public class SqlMonitor {
 			monitorObjects[i] = aMonitors.get(i);
 			methods[i] = monitorObjects[i].getClass()
 					.getMethod(
-							"monitor",
+							"monitorAfter",
 							new Class[] { String.class,String.class,long.class, long.class,
-									Object[].class, int.class,String.class });
+									Object[].class,Object.class,Throwable.class,int.class,String.class });
 		}
 		try{
 			Class<?> monitorThreadLocal =Class.forName("com.taobao.pamirs.stat.MonitorThreadLocal");
