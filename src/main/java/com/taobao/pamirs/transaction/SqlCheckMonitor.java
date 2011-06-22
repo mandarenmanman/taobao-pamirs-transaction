@@ -61,9 +61,13 @@ public class SqlCheckMonitor implements InitializingBean{
 				 throw new Exception(e);
 			}
 	}
+
+	public void monitorBefore(String sqlText,String type,String parent){
+		//
+	}
 	
-	public void monitor(String sqlText,String type, long runTime,
-			long finishTime, Object[] parameter, int executeNum,String parent){
+	public void monitorAfter(String sqlText,String type, long runTime,
+			long finishTime, Object[] parameter,Object returnValue,Throwable error, int executeNum,String parent){
 		if(RUNMODE_WRITE.equals(this.runMode)){
 			writeRuningSql(sqlText);
 		}else if(RUNMODE_CHECK.equals(this.runMode)){
