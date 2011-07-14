@@ -25,6 +25,7 @@ public class TBTransactionImpl {
 	protected static List<TBTransactionImpl> m_LeaveTransaction = Collections.synchronizedList(new ArrayList<TBTransactionImpl>());
 	private static boolean isCanGetConnectionOnNoStartTransaction = false;
 	protected int timeOut = -1;
+	protected int warnTime = 1000;//事务报警长度
 	boolean m_isCommitError = false;
 	/**
 	 * 事务使用的连接池
@@ -47,13 +48,16 @@ public class TBTransactionImpl {
 	 * 开始事务时间
 	 */
 	protected long m_startTime;
+	protected long m_startHoldConnectionTime = -1;
 
 	public void setCanGetConnectionOnNoStartTransaction(boolean isCanGetConnectionOnNoStartTransaction) {
 		log.info("canGetConnectionOnNoStartTransaction set to " + isCanGetConnectionOnNoStartTransaction);
 		TBTransactionImpl.isCanGetConnectionOnNoStartTransaction = isCanGetConnectionOnNoStartTransaction;
 	}
 
-	public TBTransactionImpl() {
+	public TBTransactionImpl(int queryTimeOut,int aWarnTime) {
+		this.timeOut = queryTimeOut;
+		this.warnTime = aWarnTime;
 	}
 	
 	/**
@@ -77,6 +81,9 @@ public class TBTransactionImpl {
 				}
 				result = TBConnection.wrap(sourceName,ds.getConnection(), this.timeOut,aDbType);
 			} else {
+				if(m_startHoldConnectionTime <0){
+				   m_startHoldConnectionTime = System.currentTimeMillis();
+				}
 				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut,aDbType);
 				this.m_conn.put(sourceName, result);
 				//将连接设置为不能自动提交
@@ -134,10 +141,11 @@ public class TBTransactionImpl {
 		this.isStartTransaction = true;
 		this.m_addr = new Exception();
 		this.m_startTime = System.currentTimeMillis();
+		this.m_startHoldConnectionTime = -1;
 		m_LeaveTransaction.add(this);
 	}
 
-	public void commit() throws SQLException {
+	public void commit() throws SQLException {		
 		if (this.isStartTransaction == false) {
 			throw new SQLException("不能提交未开始的事务");
 		}
@@ -175,6 +183,12 @@ public class TBTransactionImpl {
 			throw new SQLException(e.getMessage());
 		} finally {
 			this.clear();
+			if(log.isWarnEnabled()){
+				long spendtime = (System.currentTimeMillis() - this.m_startHoldConnectionTime);
+				if(spendtime >= warnTime){
+				   log.warn("事务持续时间过长:" + spendtime,this.m_addr);
+				}
+			}
 		}
 	}
 
@@ -196,6 +210,12 @@ public class TBTransactionImpl {
 			}
 		} finally {
 			this.clear();
+			if(log.isWarnEnabled()){
+				long spendtime = (System.currentTimeMillis() - this.m_startHoldConnectionTime);
+				if(spendtime >= warnTime){
+				   log.warn("事务持续时间过长:" + spendtime,this.m_addr);
+				}
+			}
 		}
 		if (ex != null) {
 			throw new SQLException(ex.getMessage());
@@ -211,10 +231,6 @@ public class TBTransactionImpl {
 		}
 		this.m_onlyRollback = true;
 		this.setRollbackOnlyAddr = new Exception("调用setRollbackOnly的地址");
-	}
-
-	public void setQueryTimeout(int aTimeOut){
-		this.timeOut = aTimeOut;
 	}
 
 	public void clear() {
