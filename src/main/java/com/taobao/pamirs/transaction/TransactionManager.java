@@ -17,16 +17,26 @@ import org.aopalliance.intercept.MethodInvocation;
 public class TransactionManager{
 	
 	private static Map<String,DataSource> dataSourceMap;	
-	
+	private static int queryTimeOut = -1;
+	private static int warnTimeOut = 1000;
 	/**
 	 * 事务管理器的线程变量，每个线程一个事务管理器
 	 */
 	private final static ThreadLocal<TBTransactionManager> s_transactionManager = new ThreadLocal<TBTransactionManager>() {
 		public TBTransactionManager initialValue() {
-			return new TBTransactionManagerImpl();
+			return new TBTransactionManagerImpl(queryTimeOut,warnTimeOut);
 		}
 	};
 	
+	public void setQueryTimeOut(int aQueryTimeOut) {
+		queryTimeOut = aQueryTimeOut;
+	}
+
+	public void setWarnTimeOut(int aWarnTimeOut) {
+		warnTimeOut = aWarnTimeOut;
+	}
+
+
 	@SuppressWarnings("static-access")
 	public void setDataSourceMap(Map<String, DataSource> dataSourceMap) {
 		this.dataSourceMap = dataSourceMap;

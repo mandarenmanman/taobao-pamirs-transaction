@@ -21,9 +21,4 @@ public interface TBTransactionManager {
 	
 	public void setRollbackOnly() throws SQLException;
 
-	//public int getStatus() throws SQLException;
-
-	public void setTransactionTimeout(int seconds) throws SQLException;
-	
-
 }

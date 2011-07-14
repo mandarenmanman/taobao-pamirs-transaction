@@ -21,9 +21,14 @@ public class TBTransactionManagerImpl implements TBTransactionManager {
 	 * 当前事务
 	 */
 	protected TBTransactionImpl m_currentTransaction;
+	protected int queryTimeOut = -1;
+	protected int warnTime = 1000;//事务报警长度
+	
 
-	protected TBTransactionManagerImpl() {
-		m_currentTransaction = new TBTransactionImpl();
+	protected TBTransactionManagerImpl(int aQueryTimeOut,int aWarnTime) {
+		this.queryTimeOut = aQueryTimeOut;
+		this.warnTime = aWarnTime;
+		m_currentTransaction = new TBTransactionImpl(this.queryTimeOut,this.warnTime);
 	}
     public TBTransactionImpl getCurrentTransaction(){
     	return this.m_currentTransaction;
@@ -70,7 +75,7 @@ public class TBTransactionManagerImpl implements TBTransactionManager {
 			throw new SQLException("还没有启动事务，不能挂起事务");
 		}
 		this.m_transactionStack.push(this.m_currentTransaction);
-		this.m_currentTransaction = new TBTransactionImpl();
+		this.m_currentTransaction = new TBTransactionImpl(this.queryTimeOut,this.warnTime);
 	}
 
 	public void resume() throws SQLException {
@@ -89,10 +94,5 @@ public class TBTransactionManagerImpl implements TBTransactionManager {
 		this.m_currentTransaction.setRollbackOnly();
 		
 	}
-
-	public void setTransactionTimeout(int seconds) throws SQLException {
-		this.m_currentTransaction.setQueryTimeout(seconds);		
-	}
-
-
+	
 }
