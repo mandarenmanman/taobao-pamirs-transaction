@@ -11,7 +11,7 @@
 	<groupId>com.taobao.pamirs.transaction</groupId>
 	<artifactId>taobao-pamirs-transaction</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 
 	<dependencies>
 		<dependency>
