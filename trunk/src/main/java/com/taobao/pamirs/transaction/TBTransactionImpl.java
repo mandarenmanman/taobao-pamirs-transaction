@@ -183,7 +183,7 @@ public class TBTransactionImpl {
 			throw new SQLException(e.getMessage());
 		} finally {
 			this.clear();
-			if(log.isWarnEnabled()){
+			if(log.isWarnEnabled() && this.m_startHoldConnectionTime > 0){
 				long spendtime = (System.currentTimeMillis() - this.m_startHoldConnectionTime);
 				if(spendtime >= warnTime){
 				   log.warn("事务持续时间过长:" + spendtime,this.m_addr);
@@ -210,7 +210,7 @@ public class TBTransactionImpl {
 			}
 		} finally {
 			this.clear();
-			if(log.isWarnEnabled()){
+			if(log.isWarnEnabled() && this.m_startHoldConnectionTime > 0){
 				long spendtime = (System.currentTimeMillis() - this.m_startHoldConnectionTime);
 				if(spendtime >= warnTime){
 				   log.warn("事务持续时间过长:" + spendtime,this.m_addr);
