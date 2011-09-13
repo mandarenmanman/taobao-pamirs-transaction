@@ -54,7 +54,14 @@ public class TBTransactionImpl {
 		log.info("canGetConnectionOnNoStartTransaction set to " + isCanGetConnectionOnNoStartTransaction);
 		TBTransactionImpl.isCanGetConnectionOnNoStartTransaction = isCanGetConnectionOnNoStartTransaction;
 	}
-
+	
+	/**
+	 * 默认构造方法，造福spring配置啊，反正有默认值
+	 * guichen add
+	 */
+	public TBTransactionImpl() {
+	}
+	
 	public TBTransactionImpl(int queryTimeOut,int aWarnTime) {
 		this.timeOut = queryTimeOut;
 		this.warnTime = aWarnTime;
