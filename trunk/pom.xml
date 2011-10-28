@@ -87,11 +87,11 @@
 	<distributionManagement>
 		<repository>
 			<id>taocodeReleases</id>
-			<url>http://code.taobao.org/mvn/repositories/releases/</url>
+			<url>http://mvnrepo.code.taobao.org/nexus/content/repositories/releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>taocodeSnapshots</id>
-			<url>http://code.taobao.org/mvn/repositories/snapshots</url>
+			<url>http://mvnrepo.code.taobao.org/nexus/content/repositories/snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 		
