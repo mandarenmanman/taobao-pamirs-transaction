@@ -90,7 +90,7 @@ public class TBTransactionManagerImpl implements TBTransactionManager {
 		return this.m_currentTransaction.isRollbackOnly();
 	}
 
-	public void setRollbackOnly() throws SQLException {
+	public void setRollbackOnly() {
 		this.m_currentTransaction.setRollbackOnly();
 		
 	}
