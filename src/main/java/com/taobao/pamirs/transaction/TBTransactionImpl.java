@@ -232,12 +232,13 @@ public class TBTransactionImpl {
 	public boolean isRollbackOnly() {
 		return this.m_onlyRollback;
 	}
-	public void setRollbackOnly() throws SQLException{
+	public void setRollbackOnly() {
 		if(this.isStartTransaction() == false){
-			throw new SQLException("还没有开始事务，不能设置只能回滚的属性");
+			log.warn("还没有开始事务，不能设置只能回滚的属性");
+		} else {
+			this.m_onlyRollback = true;
+			this.setRollbackOnlyAddr = new Exception("调用setRollbackOnly的地址");
 		}
-		this.m_onlyRollback = true;
-		this.setRollbackOnlyAddr = new Exception("调用setRollbackOnly的地址");
 	}
 
 	public void clear() {
