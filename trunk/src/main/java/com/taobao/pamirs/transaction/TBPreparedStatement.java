@@ -30,8 +30,8 @@ public class TBPreparedStatement extends TBStatement implements
 	private List<Object> m_parameters = new ArrayList<Object>();
 
 	public TBPreparedStatement(TBConnection conn, PreparedStatement statement,
-			String sql, int aQueryTimeOut) throws SQLException {
-		super(conn, statement, aQueryTimeOut);
+			String sql, int aQueryTimeOut,boolean aIsStartTransaction) throws SQLException {
+		super(conn, statement, aQueryTimeOut,aIsStartTransaction);
 		this.m_sql = sql;
 	}
 
@@ -55,6 +55,9 @@ public class TBPreparedStatement extends TBStatement implements
 	}
 
 	public int executeUpdate() throws SQLException {
+		if( this.isStartTransaction == false){
+			throw new SQLException("没有开启事务的连接不能执行 数据修改操作");
+		}
 		try {
 			long startTime = System.nanoTime();
 			int result = ((PreparedStatement) this.m_statement).executeUpdate();
@@ -198,6 +201,15 @@ public class TBPreparedStatement extends TBStatement implements
 	}
 
 	public boolean execute() throws SQLException {
+		// ibatis的SqlExecutor永远只调用PreparedStatement的execute方法 无视executeQuery
+		// 所以要在这里判断下sql是不是select
+		boolean isSelect = false;
+		if (this.m_sql.trim().toLowerCase().startsWith("select")) {
+			isSelect = true;
+		}
+		if(isSelect == false && this.isStartTransaction == false){
+			throw new SQLException("没有开启事务的连接不能执行 数据修改操作");
+		}
 		try {
 			long startTime = System.nanoTime();
 			boolean result = ((PreparedStatement) this.m_statement).execute();
@@ -208,9 +220,7 @@ public class TBPreparedStatement extends TBStatement implements
 			dealWithQueryTimeOutException(e, m_sql);
 			return false;
 		} finally {
-			// ibatis的SqlExecutor永远只调用PreparedStatement的execute方法 无视executeQuery
-			// 所以要在这里判断下sql是不是select
-			if (! this.m_sql.trim().toLowerCase().startsWith("select")) {
+			if (isSelect == false) {
 				this.m_conn.setHasDDLOperator();
 			}
 		}

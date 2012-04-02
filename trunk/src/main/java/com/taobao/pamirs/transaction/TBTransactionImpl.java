@@ -23,7 +23,6 @@ public class TBTransactionImpl {
 	private static transient Log log = LogFactory
 			.getLog(TBTransactionImpl.class);
 	protected static List<TBTransactionImpl> m_LeaveTransaction = Collections.synchronizedList(new ArrayList<TBTransactionImpl>());
-	private static boolean isCanGetConnectionOnNoStartTransaction = false;
 	protected int timeOut = -1;
 	protected int warnTime = 1000;//事务报警长度
 	boolean m_isCommitError = false;
@@ -49,11 +48,6 @@ public class TBTransactionImpl {
 	 */
 	protected long m_startTime;
 	protected long m_startHoldConnectionTime = -1;
-
-	public void setCanGetConnectionOnNoStartTransaction(boolean isCanGetConnectionOnNoStartTransaction) {
-		log.info("canGetConnectionOnNoStartTransaction set to " + isCanGetConnectionOnNoStartTransaction);
-		TBTransactionImpl.isCanGetConnectionOnNoStartTransaction = isCanGetConnectionOnNoStartTransaction;
-	}
 	
 	/**
 	 * 默认构造方法，造福spring配置啊，反正有默认值
@@ -83,9 +77,6 @@ public class TBTransactionImpl {
 		TBConnection result = this.m_conn.get(sourceName);
 		if(result == null){
 			if (this.isStartTransaction() == false) {
-				if (isCanGetConnectionOnNoStartTransaction == false) {
-					throw new SQLException("没有开始事务前不能获取数据库连接");
-				}
 				result = TBConnection.wrap(sourceName,ds.getConnection(), this.timeOut,aDbType);
 			} else {
 				if(m_startHoldConnectionTime <0){
