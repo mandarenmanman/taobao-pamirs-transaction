@@ -511,13 +511,6 @@ public class TBConnection implements java.sql.Connection {
 		if(dbType != null && dbType.length() > 0){
 			return dbType;
 		}
-		String dataBaseType = conn.getMetaData().getDatabaseProductName();
-		if ("tddl".equalsIgnoreCase(dataBaseType)) {
-			if(dbType == null){
-				throw new SQLException("请配置数据源 TBDataSourceImpl 的数据类型dbType:oracle or mysql");
-			}
-			dataBaseType = dbType;
-		}
-		return dataBaseType;
+		return conn.getMetaData().getDatabaseProductName();
 	}
 }
