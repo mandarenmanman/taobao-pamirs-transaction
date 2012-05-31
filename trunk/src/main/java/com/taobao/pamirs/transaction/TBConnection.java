@@ -263,6 +263,7 @@ public class TBConnection implements java.sql.Connection {
 	public void realClose() throws SQLException {
 		this.m_session = null;
 		// 在关闭原始连接前，将原始连接改为可以自动提交
+		this.m_conn.commit();
 		this.m_conn.setAutoCommit(true);
 		m_conn.close();
 		this.m_conn = null;
