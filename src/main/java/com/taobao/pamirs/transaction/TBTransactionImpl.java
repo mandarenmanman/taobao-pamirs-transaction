@@ -70,19 +70,19 @@ public class TBTransactionImpl {
 	 * @return
 	 * @throws java.sql.SQLException
 	 */
-	public Connection getConnection(String sourceName,DataSource ds,String aDbType)throws java.sql.SQLException{
+	public Connection getConnection(String sourceName,DataSource ds,String aDbType,boolean aIsCommitOnCloseConnection,boolean aIsCheckDBOnCommit)throws java.sql.SQLException{
 		if(sourceName == null){
 			throw new SQLException("数据源名称不能为 null ");
 		}
 		TBConnection result = this.m_conn.get(sourceName);
 		if(result == null){
 			if (this.isStartTransaction() == false) {
-				result = TBConnection.wrap(sourceName,ds.getConnection(), this.timeOut,aDbType);
+				result = TBConnection.wrap(sourceName,ds.getConnection(), this.timeOut,aDbType,aIsCommitOnCloseConnection,aIsCheckDBOnCommit);
 			} else {
 				if(m_startHoldConnectionTime <0){
 				   m_startHoldConnectionTime = System.currentTimeMillis();
 				}
-				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut,aDbType);
+				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut,aDbType,aIsCommitOnCloseConnection,aIsCheckDBOnCommit);
 				this.m_conn.put(sourceName, result);
 				//将连接设置为不能自动提交
 				if (result.getAutoCommit() == true) {

@@ -21,7 +21,24 @@ import org.springframework.beans.factory.BeanNameAware;
 public class TBDataSourceImpl implements DataSource, BeanNameAware {
 	String dataSourceName;
 	DataSource dataSource;
+	
+	/**
+	 * 数据库类型:oracle,mysql,一般情况通过连接就可以知道数据库类型，不用设置。
+	 * 但遇到TDDL的时候，没有实现底层接口，必须人工配置
+	 */
 	String dbType;
+	/**
+	 * 在关闭连接的时候，是否需要commit数据库连接，
+	 * 主要解决mysql，当事务隔离级别是REPEATABLE_READ的时候不能读取到修改后的数据的问题。
+	 */
+	private boolean isCommitOnCloseConnection = true;
+	
+
+	/**
+	 * 在跨库操作的时候，连接提交前是否需要进行数据库有效性检查，建议设置为true
+	 */
+	private boolean isCheckDBOnCommit = false;
+	
 	public TBDataSourceImpl(){
 		
 	}
@@ -47,10 +64,22 @@ public class TBDataSourceImpl implements DataSource, BeanNameAware {
 	public void setDbType(String dbType) {
 		this.dbType = dbType;
 	}
+	public boolean isCommitOnCloseConnection() {
+		return isCommitOnCloseConnection;
+	}
+	public void setIsCommitOnCloseConnection(boolean isCommitOnCloseConnection) {
+		this.isCommitOnCloseConnection = isCommitOnCloseConnection;
+	}
+	public boolean isCheckDBOnCommit() {
+		return isCheckDBOnCommit;
+	}
+	public void setIsCheckDBOnCommit(boolean isCheckDBOnCommit) {
+		this.isCheckDBOnCommit = isCheckDBOnCommit;
+	}
 	public Connection getConnection() throws SQLException {
 		TBTransactionManagerImpl manager =((TBTransactionManagerImpl) TransactionManager
 				.getTransactionManager());
-		return manager.getConnection(this.dataSourceName,this.dataSource,this.dbType);
+		return manager.getConnection(this.dataSourceName,this.dataSource,this.dbType,isCommitOnCloseConnection,isCheckDBOnCommit);
 	}
 
 	public Connection getConnection(String username, String password)

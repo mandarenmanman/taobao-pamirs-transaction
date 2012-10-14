@@ -18,7 +18,7 @@
 	<bean id="hj" class="com.taobao.pamirs.transaction.TBDataSourceImpl">
 	  <property name="dataSource">
 			<ref bean="hjBase"/>
-		</property>
+	   </property>
 	</bean>
 	<bean id="jz" class="com.taobao.pamirs.transaction.TBDataSourceImpl">
 	  <property name="dataSource">
@@ -31,13 +31,13 @@
 			<value>com.mysql.jdbc.Driver</value>
 		</property>
 		<property name="url">
-			<value>jdbc:mysql://192.168.207.120:3306/pamirs2?characterEncoding=UTF-8</value>
+			<value>jdbc:mysql://localhost:3306/hj?characterEncoding=UTF-8</value>
 		</property>
 		<property name="username">
 			<value>root</value>
 		</property>
 		<property name="password">
-			<value>pamirs</value>
+			<value>root</value>
 		</property>
 	</bean>
 	<bean id="jzBase" class="org.apache.commons.dbcp.BasicDataSource"
@@ -46,13 +46,13 @@
 			<value>com.mysql.jdbc.Driver</value>
 		</property>
 		<property name="url">
-			<value>jdbc:mysql://192.168.213.201:3306/pamirs2?characterEncoding=UTF-8</value>
+			<value>jdbc:mysql://localhost:3306/jz?characterEncoding=UTF-8</value>
 		</property>
 		<property name="username">
 			<value>root</value>
 		</property>
 		<property name="password">
-			<value>pamirs</value>
+			<value>root</value>
 		</property>
 	</bean>	
  </beans>

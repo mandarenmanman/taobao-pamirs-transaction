@@ -129,7 +129,7 @@ public class TestBean implements ITestBean,TBTransactionHint {
 		try{
 			 conn = TransactionManager.getConnection("hj");
 			 Statement statement = conn.createStatement();
-			 statement.executeQuery("select * from dual");
+			 statement.executeQuery("select 1 from dual");
 			 statement.close();
 		//	 Assert.state(getCurrentTransaction().getConnectionCount() == 0, "在没有执行数据修改操作的时候，事务池中的连接数应该是 0 ");
 //			 conn = TransactionManager.getConnection("hj");

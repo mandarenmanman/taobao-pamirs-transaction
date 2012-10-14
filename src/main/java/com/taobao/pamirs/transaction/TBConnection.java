@@ -50,8 +50,14 @@ public class TBConnection implements java.sql.Connection {
 	private boolean					hasDDLOperator		= false;
 	private String					dataSourceName;
 	private List<Statement>			m_statements		= new ArrayList<Statement>();
-
-	private TBConnection(String aDataSourceName, Connection conn, TBTransactionImpl session, int aQueryTimeOut,String aDbType)
+	/**
+	 * 在关闭连接的时候，是否需要commit数据库连接，
+	 * 主要解决mysql，当事务隔离级别是REPEATABLE_READ的时候不能读取到修改后的数据的问题。
+	 */
+	private boolean isCommitOnCloseConnection = true;
+	private boolean isCheckDBOnCommit=false;
+	
+	private TBConnection(String aDataSourceName, Connection conn, TBTransactionImpl session, int aQueryTimeOut,String aDbType,boolean aIsCommitOnCloseConnection,boolean aIsCheckDBOnCommit)
 			throws java.sql.SQLException {
 
 		this.m_conn = conn;
@@ -61,6 +67,8 @@ public class TBConnection implements java.sql.Connection {
 		this.m_queryTimeOut = aQueryTimeOut;
 		this.m_openTime = System.currentTimeMillis();
 		this.m_addr = new Exception();
+		this.isCommitOnCloseConnection = aIsCommitOnCloseConnection;
+		this.isCheckDBOnCommit = aIsCheckDBOnCommit;
 		this.dbType = getDataBaseType(this.m_conn,aDbType);
 		if (isSetConnectionInfo == true) {
 			this.sessionId = this.queryDBSessionID();
@@ -70,13 +78,13 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, TBTransactionImpl session,
-			int aQueryTimeOut,String aDbType) throws java.sql.SQLException {
-		return new TBConnection(aDataSourceName, conn, session, aQueryTimeOut,aDbType);
+			int aQueryTimeOut,String aDbType,boolean aIsCommitOnCloseConnection,boolean aIsCheckDBOnCommit) throws java.sql.SQLException {
+		return new TBConnection(aDataSourceName, conn, session, aQueryTimeOut,aDbType,aIsCommitOnCloseConnection,aIsCheckDBOnCommit);
 	}
 
-	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, int aQueryTimeOut,String aDbType)
+	public static TBConnection wrap(String aDataSourceName, java.sql.Connection conn, int aQueryTimeOut,String aDbType,boolean aIsCommitOnCloseConnection,boolean aIsCheckDBOnCommit)
 			throws java.sql.SQLException {
-		return new TBConnection(aDataSourceName, conn, null, aQueryTimeOut,aDbType);
+		return new TBConnection(aDataSourceName, conn, null, aQueryTimeOut,aDbType,aIsCommitOnCloseConnection,aIsCheckDBOnCommit);
 	}
 
 	public String toString() {
@@ -151,14 +159,18 @@ public class TBConnection implements java.sql.Connection {
 	 */
 	public void judgeConnAvailable() throws Exception {
 		//影响数据效率，去除校验,存在风险
-//		if ("oracle".equals(dbType.toLowerCase()) || "mysql".equals(dbType.toLowerCase())) {
-//			// 注意，这儿不能用重载后的方法，否则会把hasDDLOperator改变为true，
-//			PreparedStatement stmt = this.m_conn.prepareStatement(validateSql);
-//			stmt.execute();
-//			stmt.close();
-//		} else {
-//			throw new Exception("请提供其它数据库的校验方式");
-//		}
+		if (isCheckDBOnCommit == true) {
+			if ("oracle".equals(dbType.toLowerCase())
+					|| "mysql".equals(dbType.toLowerCase())) {
+				// 注意，这儿不能用重载后的方法，否则会把hasDDLOperator改变为true，
+				PreparedStatement stmt = this.m_conn
+						.prepareStatement(validateSql);
+				stmt.execute();
+				stmt.close();
+			} else {
+				throw new Exception("请提供其它数据库的校验方式");
+			}
+		}
 	}
 
 	/**
@@ -263,7 +275,9 @@ public class TBConnection implements java.sql.Connection {
 	public void realClose() throws SQLException {
 		this.m_session = null;
 		// 在关闭原始连接前，将原始连接改为可以自动提交
-		this.m_conn.commit();
+		if(isCommitOnCloseConnection == true && "oracle".equals(dbType) ==false){
+			this.m_conn.commit();
+		}
 		this.m_conn.setAutoCommit(true);
 		m_conn.close();
 		this.m_conn = null;
