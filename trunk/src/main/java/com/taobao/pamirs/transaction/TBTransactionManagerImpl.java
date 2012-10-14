@@ -65,8 +65,8 @@ public class TBTransactionManagerImpl implements TBTransactionManager {
 	}
 	
 
-	public Connection getConnection(String sourceName,DataSource ds,String aDbType)throws java.sql.SQLException{
-		 return this.m_currentTransaction.getConnection(sourceName,ds,aDbType);
+	public Connection getConnection(String sourceName,DataSource ds,String aDbType,boolean aIsCommitOnCloseConnection,boolean aIsCheckDBOnCommit)throws java.sql.SQLException{
+		 return this.m_currentTransaction.getConnection(sourceName,ds,aDbType,aIsCommitOnCloseConnection,aIsCheckDBOnCommit);
 	}
 	
 
