@@ -11,8 +11,8 @@ public class TBCallableStatement extends TBPreparedStatement implements
 		CallableStatement {
 
 	public TBCallableStatement(TBConnection conn, CallableStatement statement,
-			String sql, int aQueryTimeOut,boolean aIsStartTransaction) throws SQLException {
-		super(conn, statement, sql, aQueryTimeOut,aIsStartTransaction);
+			String sql, int aQueryTimeOut) throws SQLException {
+		super(conn, statement, sql, aQueryTimeOut);
 	}
 
 	public void registerOutParameter(int parameterIndex, int sqlType)
