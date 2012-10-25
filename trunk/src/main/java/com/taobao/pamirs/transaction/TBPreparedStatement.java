@@ -30,8 +30,8 @@ public class TBPreparedStatement extends TBStatement implements
 	private List<Object> m_parameters = new ArrayList<Object>();
 
 	public TBPreparedStatement(TBConnection conn, PreparedStatement statement,
-			String sql, int aQueryTimeOut,boolean aIsStartTransaction) throws SQLException {
-		super(conn, statement, aQueryTimeOut,aIsStartTransaction);
+			String sql, int aQueryTimeOut) throws SQLException {
+		super(conn, statement, aQueryTimeOut);
 		this.m_sql = sql;
 	}
 
@@ -55,9 +55,7 @@ public class TBPreparedStatement extends TBStatement implements
 	}
 
 	public int executeUpdate() throws SQLException {
-		if( this.isStartTransaction == false){
-			throw new SQLException("没有开启事务的连接不能执行 数据修改操作");
-		}
+		this.m_conn.preExecuteDDLStatement();
 		try {
 			long startTime = System.nanoTime();
 			int result = ((PreparedStatement) this.m_statement).executeUpdate();
@@ -67,8 +65,6 @@ public class TBPreparedStatement extends TBStatement implements
 		} catch (SQLException e) {
 			dealWithQueryTimeOutException(e, m_sql);
 			return 0;
-		} finally {
-			this.m_conn.setHasDDLOperator();
 		}
 
 	}
@@ -207,8 +203,8 @@ public class TBPreparedStatement extends TBStatement implements
 		if (this.m_sql.trim().toLowerCase().startsWith("select")) {
 			isSelect = true;
 		}
-		if(isSelect == false && this.isStartTransaction == false){
-			throw new SQLException("没有开启事务的连接不能执行 数据修改操作");
+		if(isSelect == false){
+			this.m_conn.preExecuteDDLStatement();
 		}
 		try {
 			long startTime = System.nanoTime();
@@ -219,10 +215,6 @@ public class TBPreparedStatement extends TBStatement implements
 		} catch (SQLException e) {
 			dealWithQueryTimeOutException(e, m_sql);
 			return false;
-		} finally {
-			if (isSelect == false) {
-				this.m_conn.setHasDDLOperator();
-			}
 		}
 
 	}

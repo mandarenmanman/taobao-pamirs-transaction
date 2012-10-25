@@ -84,10 +84,8 @@ public class TBTransactionImpl {
 				}
 				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut,aDbType,aIsCommitOnCloseConnection,aIsCheckDBOnCommit);
 				this.m_conn.put(sourceName, result);
-				//将连接设置为不能自动提交
-				if (result.getAutoCommit() == true) {
-					result.setAutoCommit(false);
-				}
+				
+				//在连接进行数据修改操作的时候才执行setAutoCommit(false)
 			}
 		}
 		return result;
