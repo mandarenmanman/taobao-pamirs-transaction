@@ -257,16 +257,26 @@ public class TBConnection implements java.sql.Connection {
 		//如果autocommit==false,则不需要提交，否则会抛异常
 		if(m_conn.getAutoCommit() == false){
 			m_conn.commit();
-			log.debug("commit Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+			if (log.isDebugEnabled()) {
+				log.debug("commit Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+			}
 		}else{
-			log.debug("autocommit==false不需要提交事务:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+			if (log.isDebugEnabled()) {
+				log.debug("autocommit==true不需要提交事务:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+			}
 		}
 	}
 
 	public void realRollback() throws SQLException {
-		m_conn.rollback();
-		if (log.isDebugEnabled()) {
-			log.debug("rollback Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+		if(m_conn.getAutoCommit() == false){
+		    m_conn.rollback();
+			if (log.isDebugEnabled()) {
+				log.debug("rollback Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+			}
+		}else{
+			if (log.isDebugEnabled()) {
+				log.debug("autocommit==true不需要回滚事务:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+			}			
 		}
 	}
 
