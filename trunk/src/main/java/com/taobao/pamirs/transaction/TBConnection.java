@@ -254,9 +254,12 @@ public class TBConnection implements java.sql.Connection {
 		if (this.m_session == null && this.hasDDLOperator == true) {
 			throw new SQLException("没有加入事务的连接不能执行数据修改操作，请在bean上增加注解@TBTransactionAnnotation或者实现接口TBTransactionHint");
 		}
-		m_conn.commit();
-		if (log.isDebugEnabled()) {
+		//如果autocommit==false,则不需要提交，否则会抛异常
+		if(m_conn.getAutoCommit() == false){
+			m_conn.commit();
 			log.debug("commit Connection:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
+		}else{
+			log.debug("autocommit==false不需要提交事务:SESSION_ID=" + this.sessionId + ":" + this.m_conn);
 		}
 	}
 
