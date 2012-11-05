@@ -3,19 +3,19 @@ package com.taobao.pamirs.transaction;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
 
-import org.aopalliance.intercept.MethodInvocation;
-
-public class TBMethodInvocation implements MethodInvocation {
+public class TBMethodInvocation  implements TBMethodAction{
 
 	Method method;
 	Object runObject;
 	Object[] arguments;
+	
 	public TBMethodInvocation(Method aMethod,Object aRunObject,Object[] aArguments){
 		this.method = aMethod;
 		this.runObject = aRunObject;
 		this.arguments = aArguments;
 		
 	}
+	
 	public Method getMethod() {
 		 return method;
 	}
@@ -34,6 +34,11 @@ public class TBMethodInvocation implements MethodInvocation {
 
 	public Object proceed() throws Throwable {
 		return this.method.invoke(this.runObject,this.arguments);
+	}
+
+	public String getMethodName() throws Throwable {
+		return method.getDeclaringClass().getName() + "."
+				+ method.getName();
 	}
 
 }

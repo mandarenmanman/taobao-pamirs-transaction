@@ -1,56 +1,64 @@
 package com.taobao.pamirs.transaction;
 
-import com.taobao.pamirs.transaction.TBTransactionAnnotation;
-import com.taobao.pamirs.transaction.TBTransactionType;
-import com.taobao.pamirs.transaction.TBTransactionTypeAnnotation;
-import com.taobao.pamirs.transaction.TransactionManager;
-
-@TBTransactionAnnotation
 public class PamirsTransactionTemplate {
+
 	/**
 	 * 为Join事务模板
+	 * 
 	 * @param action
 	 * @return
 	 */
-	@TBTransactionTypeAnnotation(TBTransactionType.JOIN)
 	public Object execute(PamirsTransactionAction action) {
-		Object result = null;
 		PamirsTransactionStatus status = new PamirsTransactionStatus();
 		try {
-
-			result = action.doInTransaction(status);
-			if (status.isRollbackOnly()) {
-				TransactionManager.getTransactionManager().setRollbackOnly();
-				//throw new RuntimeException("事务已经被回滚，返回结果:" + result);
-			}
-
+			return TransactionManager.executeMethod(new PamirsMethodAction(action,
+					status), TBTransactionType.JOIN);
 		} catch (Throwable e) {
-			status.setRollbackOnly();
 			throw new RuntimeException(e);
 		}
-		return result;
 	}
+
 	/**
 	 * 为INDEPEND事务模板
+	 * 
 	 * @param action
 	 * @return
 	 */
-	@TBTransactionTypeAnnotation(TBTransactionType.INDEPEND)
 	public Object executeIndepend(PamirsTransactionAction action) {
-		Object result = null;
 		PamirsTransactionStatus status = new PamirsTransactionStatus();
 		try {
-
-			result = action.doInTransaction(status);
-			if (status.isRollbackOnly()) {
-				TransactionManager.getTransactionManager().setRollbackOnly();
-				//throw new RuntimeException("事务已经被回滚，返回结果:" + result);
-			}
-
+			return TransactionManager.executeMethod(new PamirsMethodAction(action,
+					status), TBTransactionType.INDEPEND);
+			 
 		} catch (Throwable e) {
-			status.setRollbackOnly();
 			throw new RuntimeException(e);
 		}
-		return result;
+	}
+
+	class PamirsMethodAction implements TBMethodAction {
+
+		private PamirsTransactionAction action;
+		private PamirsTransactionStatus status;
+
+		public PamirsMethodAction(PamirsTransactionAction action,
+				PamirsTransactionStatus status) {
+			this.action = action;
+			this.status = status;
+		}
+
+		public String getMethodName() throws Throwable {
+			return this.getClass().getName();
+		}
+
+		public Object proceed() throws Throwable {
+			Object result = null;
+			result = action.doInTransaction(status);
+			if (status.isRollbackOnly()) { // 此处防止业务使用者未将异常抛出,只设置了回滚
+				TransactionManager.getTransactionManager().setRollbackOnly();
+			}
+
+			return result;
+		}
+
 	}
 }

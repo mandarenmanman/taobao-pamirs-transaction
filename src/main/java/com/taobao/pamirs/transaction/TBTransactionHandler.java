@@ -116,6 +116,29 @@ class TransactionAdvisor implements Advisor {
 	}
 }
 
+
+
+ 
+class ReflectMethodAction implements TBMethodAction {
+
+	private MethodInvocation invocation;
+
+	public ReflectMethodAction(MethodInvocation invocation) {
+		this.invocation = invocation;
+	}
+
+	public Object proceed() throws Throwable {
+		return invocation.proceed();
+	}
+
+	public String getMethodName() throws Throwable {
+		return invocation.getMethod().getDeclaringClass().getName() + "."
+				+ invocation.getMethod().getName();
+	}
+
+}
+
+
 class TransactionRoundAdvice implements MethodInterceptor, Advice {
 	private static transient Log log = LogFactory
 			.getLog(TransactionRoundAdvice.class);
@@ -125,7 +148,7 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
     }
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		TBTransactionType transactionType = getTBTransactionType(invocation.getMethod());
-		return invokeInner(invocation,transactionType);
+		return invokeInner(new ReflectMethodAction(invocation),transactionType);
 	}
 	
 		
@@ -144,8 +167,14 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 		}
 	}
 
+	
 	public static Object invokeInner(MethodInvocation invocation,TBTransactionType transactionType) throws Throwable {
-		String methodName =invocation.getMethod().getDeclaringClass().getName() + "."+ invocation.getMethod().getName(); 
+		return invokeInner(new ReflectMethodAction(invocation), transactionType);
+	}
+	
+	
+	public static Object invokeInner(TBMethodAction methodAction,TBTransactionType transactionType) throws Throwable {
+		String methodName =methodAction.getMethodName();
 		Object result = null;
 		long startTime = System.currentTimeMillis();
 		// 执行要处理对象的原本方法
@@ -180,7 +209,7 @@ class TransactionRoundAdvice implements MethodInterceptor, Advice {
 						+ isSuspend + ", startTransaction = "
 						+ isSelfStartTransaction);
 			}
-			result = invocation.proceed();
+			result = methodAction.proceed();
 			if (isSelfStartTransaction == true) {// 自己开始的,则提交事务
 				TransactionManager.getTransactionManager().commit();
 				if (log.isDebugEnabled()) {

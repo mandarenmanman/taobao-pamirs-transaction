@@ -55,6 +55,11 @@ public class TransactionManager{
 	public static TBTransactionManager getTransactionManager() {
        return s_transactionManager.get();
 	}
+	
+	
+	public static Object executeMethod(TBMethodAction invocation,TBTransactionType transactionType) throws Throwable {
+		return TransactionRoundAdvice.invokeInner(invocation, transactionType);
+	}
 
 	public static Object executeMethod(MethodInvocation invocation,
 			TBTransactionType transactionType) throws Throwable {
