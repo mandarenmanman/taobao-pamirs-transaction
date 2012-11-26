@@ -8,7 +8,7 @@ public class PamirsTransactionTemplate {
 	 * @param action
 	 * @return
 	 */
-	public static Object execute(PamirsTransactionAction action) {
+	public  Object execute(PamirsTransactionAction action) {
 		PamirsTransactionStatus status = new PamirsTransactionStatus();
 		try {
 			return TransactionManager.executeMethod(new PamirsMethodAction(action,
@@ -24,7 +24,7 @@ public class PamirsTransactionTemplate {
 	 * @param action
 	 * @return
 	 */
-	public static Object executeIndepend(PamirsTransactionAction action) {
+	public  Object executeIndepend(PamirsTransactionAction action) {
 		PamirsTransactionStatus status = new PamirsTransactionStatus();
 		try {
 			return TransactionManager.executeMethod(new PamirsMethodAction(action,
@@ -35,7 +35,7 @@ public class PamirsTransactionTemplate {
 		}
 	}
 
-	static class PamirsMethodAction implements TBMethodAction {
+	class PamirsMethodAction implements TBMethodAction {
 
 		private PamirsTransactionAction action;
 		private PamirsTransactionStatus status;
