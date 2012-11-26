@@ -15,7 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * 
+ *
  * @author xuannan
  *
  */
@@ -48,19 +48,19 @@ public class TBTransactionImpl {
 	 */
 	protected long m_startTime;
 	protected long m_startHoldConnectionTime = -1;
-	
+
 	/**
 	 * 默认构造方法，造福spring配置啊，反正有默认值
 	 * guichen add
 	 */
 	public TBTransactionImpl() {
 	}
-	
+
 	public TBTransactionImpl(int queryTimeOut,int aWarnTime) {
 		this.timeOut = queryTimeOut;
 		this.warnTime = aWarnTime;
 	}
-	
+
 	/**
 	 * 在Wrap后的数据源中，调用此方法。
 	 * 如果数据源名称的conn已经存在，则直接返回
@@ -84,7 +84,7 @@ public class TBTransactionImpl {
 				}
 				result = TBConnection.wrap(sourceName,ds.getConnection(), this, this.timeOut,aDbType,aIsCommitOnCloseConnection,aIsCheckDBOnCommit);
 				this.m_conn.put(sourceName, result);
-				
+
 				//在连接进行数据修改操作的时候才执行setAutoCommit(false)
 			}
 		}
@@ -96,13 +96,13 @@ public class TBTransactionImpl {
 		for(TBTransactionImpl item: m_LeaveTransaction){
 			Object[] connections = item.m_conn.values().toArray();
 			log.error(item.toString() + ": isStart = " +  item.isStartTransaction +":");
-			
+
 			for(Object conn : connections){
 				log.error("\t\t" + conn);
 			}
 		}
 		log.error("transaction print end------------------");
-			
+
 	}
 	public int getConnectionCount(){
 		return this.m_conn.size();
@@ -115,17 +115,17 @@ public class TBTransactionImpl {
 	public void removeConnection(String sourceName){
 		this.m_conn.remove(sourceName);
 	}
-	
+
 	/**
 	 * 挂起事务
 	 * @throws SQLException
 	 */
 	public void suspend() throws SQLException {
-		
+
 	}
 
 	public void resume() throws SQLException {
-		
+
 	}
 	 public boolean isStartTransaction(){
 		  return  this.isStartTransaction;
@@ -141,7 +141,7 @@ public class TBTransactionImpl {
 		m_LeaveTransaction.add(this);
 	}
 
-	public void commit() throws SQLException {		
+	public void commit() throws SQLException {
 		if (this.isStartTransaction == false) {
 			throw new SQLException("不能提交未开始的事务");
 		}
@@ -178,13 +178,13 @@ public class TBTransactionImpl {
 			}
 			throw new SQLException(e.getMessage());
 		} finally {
-			this.clear();
 			if(log.isWarnEnabled() && this.m_startHoldConnectionTime > 0){
 				long spendtime = (System.currentTimeMillis() - this.m_startHoldConnectionTime);
 				if(spendtime >= warnTime){
 				   log.warn("事务持续时间过长:" + spendtime,this.m_addr);
 				}
 			}
+			this.clear();
 		}
 	}
 
@@ -205,13 +205,13 @@ public class TBTransactionImpl {
 				}
 			}
 		} finally {
-			this.clear();
 			if(log.isWarnEnabled() && this.m_startHoldConnectionTime > 0){
 				long spendtime = (System.currentTimeMillis() - this.m_startHoldConnectionTime);
 				if(spendtime >= warnTime){
 				   log.warn("事务持续时间过长:" + spendtime,this.m_addr);
 				}
 			}
+			this.clear();
 		}
 		if (ex != null) {
 			throw new SQLException(ex.getMessage());
