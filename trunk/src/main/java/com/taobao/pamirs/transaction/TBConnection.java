@@ -66,7 +66,12 @@ public class TBConnection implements java.sql.Connection {
 		this.m_session = session;
 		this.m_queryTimeOut = aQueryTimeOut;
 		this.m_openTime = System.currentTimeMillis();
-		this.m_addr = new Exception();
+		if (log.isDebugEnabled()) {
+			this.m_addr = new Exception();
+		} else {
+			this.m_addr = null;
+		}
+		
 		this.isCommitOnCloseConnection = aIsCommitOnCloseConnection;
 		this.isCheckDBOnCommit = aIsCheckDBOnCommit;
 		this.dbType = getDataBaseType(this.m_conn,aDbType);
@@ -138,6 +143,9 @@ public class TBConnection implements java.sql.Connection {
 	}
 
 	public static String getCallPath(Throwable e) {
+		if (e == null) {
+			return "";
+		}
 		StringBuffer sb = new StringBuffer();
 		StackTraceElement stack[] = e.getStackTrace();
 		for (int i = 0; i < stack.length; i++) {
